@@ -23,7 +23,10 @@ temp_dir_base = os.path.join(os.getcwd(), "temp")
 
 
 def run(
-    initiate: bool = False, date: Optional[str] = False, push_to_dropbox: bool = False
+    initiate: bool = False,
+    date: Optional[str] = False,
+    daysago: Optional[int] = None,
+    push_to_dropbox: bool = False,
 ):
     # Decent filter parameters
     filter_config = {
@@ -47,6 +50,10 @@ def run(
         startdate_jd = Time(req_date, format="iso", scale="utc").jd
         delta_t = 1
         enddate_jd = startdate_jd + delta_t
+
+    elif daysago:
+        enddate_jd = Time.now().jd
+        startdate_jd = enddate_jd - float(daysago)
 
     else:
         startdate_jd = 2459899.04167
@@ -414,9 +421,21 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--daysago",
+        type=int,
+        default=None,
+        help="Starting from today, get the last n days",
+    )
+
+    parser.add_argument(
         "-p", "--push", action="store_true", help="NO dry run, push to dropbox instead"
     )
 
     args = parser.parse_args()
 
-    run(initiate=args.initiate, date=args.date, push_to_dropbox=args.push)
+    run(
+        initiate=args.initiate,
+        date=args.date,
+        daysago=args.daysago,
+        push_to_dropbox=args.push,
+    )
