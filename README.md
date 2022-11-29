@@ -10,7 +10,6 @@ conda activate tde_filter_upgrade
 Install is done via poetry:
 ```
 pip install poetry 
-mkdir tde_filter_upgrade
 git clone https://github.com/AmpelProject/ampel-nuclear
 cd Ampel-nuclear
 poetry install
@@ -28,4 +27,4 @@ To run the test, issue
 The `-i` initiates a new stream token. To change the date, use `-d YYYY-MM-DD` for a certain day. The script will request alerts for the 24 hours after this date.
 Note: When requesting a full day with `-d` from the archive, the first run will probably fail, as it's not ready yet (`URL is locked`). Just rerun `./run_tde_test.py -d YYYY-MM-DD` in that case until it works.
 
-To check output, go to the `temp` directory that gets created.
+To check the output, go to the `temp` directory that gets created when script is run without `-p` (push to dropbox).
