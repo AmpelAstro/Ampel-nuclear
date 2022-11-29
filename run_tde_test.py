@@ -111,7 +111,7 @@ def run(
     cwd = os.getcwd()
     AMPEL_CONF = f"{cwd}/ampel_conf.yaml"
 
-    channel = "ZTFBH"
+    channel = "AMPEL_NUCLEAR"
 
     ctx = DevAmpelContext.load(
         config=AMPEL_CONF,
