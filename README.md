@@ -7,6 +7,7 @@ You need to export environment variables for the [AMPEL ZTF archive](https://amp
 
 Furthermore, you need a running instance of [MongoDB](https://www.mongodb.com/docs/manual/installation/).
 
+### Setup
 Create a fresh Python 3.10 conda env
 ```
 conda create -n tde_filter_upgrade python=3.10
