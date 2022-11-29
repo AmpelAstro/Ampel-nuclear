@@ -11,13 +11,9 @@ Install is done via poetry:
 ```
 pip install poetry 
 mkdir tde_filter_upgrade
-git clone https://github.com/AmpelProject/ampel-HU-astro
-cd Ampel-HU-astro
+git clone https://github.com/AmpelProject/ampel-nuclear
+cd Ampel-nuclear
 poetry install
-cd ..
-git clone https://github.com/robertdstein/Ampel-contrib-ZTFbh
-cd Ampel-contrib-ZTFbh
-pip install -e .
 ```
 Now we have to build the ampel config. Issue
 ```
