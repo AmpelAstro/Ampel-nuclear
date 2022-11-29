@@ -1,23 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/contrib/ztfbh//t3/T3Ranking.py
+# File              : ampel/nuclear/t3/T3MetricsPlots.py
 # License           : BSD-3-Clause
 # Author            : mitchell@nyu.edu
 # Date              : 08.06.2020
-# Last Modified Date: 22.11.2022
+# Last Modified Date: 15.11.2022
 # Last Modified By  : simeon.reusch@desy.de
 
-import datetime, json, io, time
 
-from typing import Any, Optional, Union
+import os, sys, datetime, io, json, warnings
 from collections.abc import Generator
+from typing import Any, Optional, Union
 
+from pydantic import BaseModel
 import matplotlib as mpl
-from matplotlib import pyplot as plt
+import corner
+import astropy
+from numpy import log10, sqrt, log
 import numpy as np
 import pandas as pd
-import astropy.time
-import corner
+from matplotlib import pyplot as plt
 
 from ampel.types import UBson, T3Send
 from ampel.view.TransientView import TransientView
@@ -26,6 +28,8 @@ from ampel.struct.UnitResult import UnitResult
 from ampel.abstract.AbsPhotoT3Unit import AbsPhotoT3Unit
 from ampel.contrib.ztfbh.t3.dropboxIO import DropboxUnit
 import ampel.contrib.ztfbh.t3.classifyme as classifyme
+
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 flex_keys = [
     "dtime_peak",
@@ -40,6 +44,7 @@ flex_keys = [
     "e_mean_color",
     "e_color_slope",
     "e_sigma_rise",
+    "e_sigma_fade",
     "mad",
     "rms",
     "chi2",
@@ -51,7 +56,6 @@ flex_keys = [
     "photoclass",
     "blabber",
 ]
-
 simple_keys = [
     "name",
     "classification",
@@ -95,447 +99,54 @@ simple_keys = [
 ]
 
 
-class T3Ranking(DropboxUnit):
+class T3SummaryPlots(DropboxUnit, AbsPhotoT3Unit):
 
     plotHisto: bool = False  # create histrograms for of the magnitude of the transients in the different summary plots
+    force_date: str = None  # force the save date for testing
 
     def post_init(self):
-        # super().post_init()
-
-        # make empty dataframes
-        self.metrics = pd.DataFrame(columns=simple_keys)
-        self.metrics_flex = pd.DataFrame(columns=flex_keys)
-
-        # do folder I/O
-        self.ranking_location = self.base_location + "/ranking"
-        self.sum_location = self.base_location + "/sum_plots"
-
-        if "ranking" not in self.get_files(self.base_location):
-            self.create_folder(self.ranking_location)
-
+        super().post_init()
+        self.save_location = self.base_location + "/sum_plots"
         if "sum_plots" not in self.get_files(self.base_location):
-            self.create_folder(self.sum_location)
+            self.create_folder(self.save_location)
 
-        # if needed, add the year subfolder (always needed when we are running pytest)
-        self.this_year = str(self.today.datetime.year)
-        if self.this_year not in self.get_files(self.ranking_location):
-            self.create_folder(self.ranking_location + "/" + self.this_year)
-
-        sum_location_year = self.sum_location + "/" + self.this_year
-        if self.this_year not in self.get_files(self.sum_location):
-            self.create_folder(sum_location_year)
-
-        # finally, add the dd-mm subfolder for sum_plot
-        self.this_mmdd = self.today.datetime.strftime("%m-%d")
-        self.plot_dir = sum_location_year + "/" + self.this_mmdd
-        if self.this_mmdd not in self.get_files(sum_location_year):
-            self.create_folder(self.plot_dir)
+    def plt2box(self, plt, fname):
+        """
+        write PDF of plot in pyplot to dropbox
+        (could be more neat to work with ax objects everywhere, but hey)
+        >> plt2box(plt, plot_name)
+        """
+        buf = io.BytesIO()
+        ax = plt.gca()
+        ax.figure.savefig(buf, format="pdf")
+        buf.seek(0)
+        self.put(fname, buf.read())
 
     def process(
         self, gen: Generator[TransientView, T3Send, None], t3s: Optional[T3Store] = None
     ) -> Union[UBson, UnitResult]:
         """ """
         # DUMMY FUNCTION FOR NOW
-        transients = [t for t in gen]
-        metrics, metrics_flex = self.collect_metrics(transients)
+        a = 1
 
-        if len(metrics):
-            self.metrics = pd.concat([self.metrics, metrics], ignore_index=True)
-            self.metrics_flex = pd.concat(
-                [self.metrics_flex, metrics_flex], ignore_index=True
-            )
-            self.logger.info(
-                "done adding transients, total collected: " + str(len(self.metrics))
-            )
-            self.make_sumplots(self.metrics, self.metrics_flex)
-        else:
-            self.metrics = []
-            self.metrics_flex = []
-            self.logger.info("metrics is empty, skipping summary plots")
-
-        if len(self.metrics):
-            self.apply_ranking(self.metrics, self.metrics_flex)
-
-        super().done()
-
-    def collect_metrics(self, transients):
-        """ """
-        jd_today = self.today.jd
-
-        if transients:
-
-            local_sources = np.array(transients)
-            newdetection_count = len(local_sources)
-            self.logger.info(
-                "Collecting metrics for {} transient(s)".format(newdetection_count)
-            )
-            for i, tran_view in enumerate(local_sources):
-
-                # get the classification and some extra info
-                # writing of the classifcation to dropbox is done by T3SummaryPlots
-                classification, extra_info = classifyme.get_class(
-                    tran_view, self, self.logger, write=False
-                )
-
-                # save the classification to the (simple) metric
-                simple_results = self.get_simple_results(
-                    tran_view, classification, extra_info
-                )
-                simple_results["index"] = [0]
-                metrics = pd.DataFrame.from_dict(data=simple_results, orient="columns")
-
-                # also parse the results form flex metric
-                fit_params = self.get_fit_params(tran_view, classification)
-                fit_params["index"] = [0]
-
-                metrics_flex = pd.DataFrame.from_dict(fit_params, orient="columns")
-
-            self.logger.info(
-                "successfully collected metrics: "
-                + str(all(metrics_flex["name"] == metrics["name"]))
-            )
-        else:
-            self.logger.info("no transients to rank!")
-            return [], []
-
-        # Cast object columns to float64
-        for k in metrics_flex.columns:
-            if k not in {
-                "name",
-                "classification",
-                "photoclass",
-                "blabber",
-                "n_rise",
-                "n_fade",
-                "band",
-            }:
-                metrics_flex[k] = metrics_flex[k].astype(float)
-
-        # Returns results from T2s
-        return metrics, metrics_flex
-
-    def get_fit_params(self, tran_view, classification):
-        try:
-            fit_params = dict(
-                (tran_view.get_latest_t2_body("T2FlexFit") or {})["fit_params"]
-            )
-            fit_params["classification"] = classification
-            return fit_params
-
-        except KeyError:
-            self.logger.warn(
-                "WARNING: No Flex fit for source {}".format(tran_view.stock["name"][0])
-            )
-            emptyrow = dict(zip(np.full(len(flex_keys), None), flex_keys))
-            emptyrow["name"], emptyrow["classification"] = (
-                tran_view.stock["name"][0],
-                classification,
-            )
-            return emptyrow
-
-    def get_simple_results(self, tran_view, classification, extra_info):
-        # try:
-        # simple_results = dict(
-        #     (tran_view.get_t2_result("T2SimpleMetrics") or {}).get("metrics", {})
-        # )
-        simple_results = dict(
-            tran_view.get_latest_t2_body("T2SimpleMetrics" or {}).get("metrics", {})
-        )
-
-        simple_results["ra"] = np.mean(simple_results["ra"])
-        simple_results["dec"] = np.mean(simple_results["dec"])
-
-        simple_results["classification"] = classification
-        simple_results["extra_info"] = extra_info
-        simple_results["age"] = (
-            self.today.jd
-            - astropy.time.Time(tran_view.get_time_updated(output="datetime")).jd
-        )
-
-        # to do: read this from the T2 catalog match records?
-        alert_base = "/mampel/alerts/" + "20" + simple_results["name"][3:5]
-        try:
-            # if matched to PS1, read offset and our estimate of the offset significance
-            # this could also be computed from the T2 match info, but this is fast enough
-            results_infile = self.read_file(
-                alert_base
-                + "/{}/{}_simple.json".format(
-                    simple_results["name"], simple_results["name"]
-                )
-            )
-            if isinstance(results_infile, str):
-                results_json = json.loads(results_infile)
-            else:
-                print(results_infile)
-                results_json = results_infile[0].json()
-
-            simple_results["offset_med_ps1"] = results_json["offset_med_ps1"]
-            simple_results["offset_rms_ps1"] = results_json["offset_rms_ps1"]
-            simple_results["offset_sig_ps1"] = results_json["offset_sig_ps1"]
-            self.logger.info(
-                "PS1 offsets calculated for {}".format(simple_results["name"])
-            )
-        except (FileNotFoundError, KeyError) as e:
-            self.logger.warn(
-                "WARNING: No PS1 offsets calculated for source {}".format(
-                    tran_view.stock["name"][0]
-                )
-            )
-            simple_results["offset_med_ps1"] = 0.0
-            simple_results["offset_rms_ps1"] = 0.0
-            simple_results["offset_sig_ps1"] = 0.0
-
-        return simple_results
-
-    def apply_ranking(self, metrics, metrics_flex):
-        """ """
-
-        ranking = self.get_ranking(metrics, metrics_flex)
-        self.metrics["ranking"] = ranking
-        metrics = self.metrics
-        metrics_flex = self.metrics_flex
-
-        base_name = (
-            self.ranking_location + "/" + self.this_year + "/" + self.this_mmdd
-        )  # base of filename
-
-        metrics["classification"] = [
-            "None" if (c == "") or (c == np.nan) else c
-            for c in metrics["classification"]
-        ]
-
-        iage = metrics["age"] > 0
-
-        # Select things saved for as part of Ampel filter
-        # iampel = ['ZTFBH Nuclear' in [x['comment'] for x in aa] for aa in [ls['autoannotations'] for ls in marshal_data['metadata']]]
-
-        iagn = (
-            (metrics["classification"] == "AGN")
-            | (metrics["classification"] == "blazar")
-            | (metrics["classification"] == "QSO")
-            | (metrics["classification"] == "Blazar")
-        )  # This would use AGN detection...
-        icv = np.array(["CV" in str(x) for x in metrics["classification"]])
-        istar = np.array(["st" in str(x) for x in metrics["classification"]]) | icv
-        ibogus = np.array(["bogus" in str(x) for x in metrics["classification"]])
-        iflexok = (
-            (metrics_flex["chi2"] < 10)
-            & (metrics_flex["photoclass"] != "no fit")
-            & (metrics_flex["photoclass"] != "fast/weird")
-        )
-
-        iok = (
-            (metrics["peak_mag"] < 20)
-            & (metrics["peak_diff_mag"] < 2)
-            & (metrics["peak_mag"] > 0)
-        )
-
-        ipublic = (
-            (metrics["latest_mag"] < 19.5)
-            & (metrics["latest_diff_mag"] < 1)
-            & (
-                metrics["ndetections"]
-                > 4 & metrics["lastest_obs_is_detection"].astype(bool)
-            )
-        )
-
-        inone = metrics["classification"] == "None"  # Marshal classification
-        itde = (metrics["classification"] == "TDE") | (
-            metrics["classification"] == "TDE?"
-        )  # Marshal classification
-        imaybe = ["?" in str(x["classification"]) for ind, x in metrics.iterrows()]
-        inotsecure = inone | imaybe
-
-        # to do: get this info again from Fritz (and Growth?)
-        # ihasspec = np.array([bool(ls['n_spectra']) for ls in marshal_data['metadata']])
-        # self.logger.info ('# of sources with spectra: '+  str(sum(ihasspec)))
-        # inospec = ihasspec==False
-
-        # try a public stream
-        iselect = (
-            ipublic
-            & iage
-            & iflexok
-            & (iagn == False)
-            & (ibogus == False)
-            & (istar == False)
-        )
-        self.logger.info("# sources in public list: " + str(sum(iselect)))
-        filename = base_name + "_public_testing.txt"
-        self.print_ranking(filename, metrics[iselect], metrics_flex[iselect])
-
-        # spectrum without secure marshal class
-        # iselect =  iok & iflexok & inotsecure # & ihasspec
-        # filename = base_name.split('_')[0]+'_spectrum_but_no_classification.txt'
-        # self.print_ranking(filename, metrics[iselect], metrics_flex[iselect])
-
-        # everything (including bad fit etc)
-        iselect = iage
-        self.logger.info("# sources in everyting list: " + str(sum(iselect)))
-        filename = base_name + "_everything.txt"
-
-        self.print_ranking(filename, metrics[iselect], metrics_flex[iselect])
-
-        # SEDM select bright sources
-        # to do: filter out sources wih a spectrum
-        ibrightnow = metrics["latest_mag"] < 19.5
-        iselect = ibrightnow & iflexok & iage & iok & inotsecure  # & inospec
-        self.logger.info("# sources in SEDM list: " + str(sum(iselect)))
-
-        filename = base_name + "_unclassified_SEDM.txt"
-        self.print_ranking(filename, metrics[iselect], metrics_flex[iselect])
-
-        # select TDE candidates, plus known TDEs
-        iphototde = (metrics_flex["photoclass"] == "TDE") | (
-            metrics_flex["photoclass"] == "TDE?"
-        )
-        iselect = iage & iok & iflexok & iphototde & (inotsecure | itde)
-        self.logger.info("# sources in TDE list: " + str(sum(iselect)))
-
-        filename = base_name + "_TDEs.txt"
-        self.print_ranking(filename, metrics[iselect], metrics_flex[iselect])
-
-        # select source for rapid Swift follow-up:
-        # blue, slow and pre-peak
-        ipretde = (
-            (metrics_flex["mean_color"] < 0.0)
-            & (np.abs(metrics_flex["e_mean_color"]) < 0.35)
-            & (metrics_flex["sigma_rise"] > 9)
-            & (
-                metrics_flex["sigma_rise"]
-                / np.clip(metrics_flex["e_sigma_rise"], 1, 1e99)
-                > 2
-            )
-            & (metrics_flex["n_rise"] > 2)
-            & (metrics_flex["n_fade"] < 3)
-        )
-        iselect = iage & iok & iflexok & ipretde & (inotsecure | itde)  # &inospec
-        self.logger.info("# sources in pre-peak TDE list: " + str(sum(iselect)))
-        filename = base_name + "_prepeak_TDEs.txt"
-
-        self.print_ranking(filename, metrics[iselect], metrics_flex[iselect])
-
-    def get_ranking(self, metrics, metrics_flex):
+    def add(self, transients):
         """
-        attempt at ranking sources for follow-up, using resulting from
-        light curve fitting (flexfit) and basic properties  (simplemetrics)
-
-        """
-
-        rank = np.zeros(len(metrics), dtype=float)
-        rank[
-            metrics["peak_mag"] == 0
-        ] = 1000  # if it didnt pass filter, even lower rank
-        ipbad = np.array([bool("bad" in str(pc)) for pc in metrics_flex["photoclass"]])
-        ipagn = np.array([bool("AGN" in str(pc)) for pc in metrics_flex["photoclass"]])
-        ipcv = np.array([bool("CV" in str(pc)) for pc in metrics_flex["photoclass"]])
-        iptde = np.array([bool(str(pc) == "TDE") for pc in metrics_flex["photoclass"]])
-        iptde_m = np.array(
-            [bool(str(pc) == "TDE?") for pc in metrics_flex["photoclass"]]
-        )
-        ipsn = np.array(
-            [bool(str(pc)[0:2] == "SN") for pc in metrics_flex["photoclass"]]
-        )
-        ipsn_m = np.array(
-            [bool(str(pc)[0:3] == "SN?") for pc in metrics_flex["photoclass"]]
-        )
-
-        # decrease rank for fainter reference magnitude
-        # removed this in Dec 2020 to decrease host bias
-        # rank += np.clip(metrics['ref_mag'].values, 17,25)
-
-        # photmetric TDE get higer rank
-        rank[iptde] -= 5
-        # maybe photmetric TDE gets somewhat higer rank
-        rank[iptde_m] -= 4
-
-        # poor fit gets a lower rank
-        rank[ipbad] += 1
-
-        # photmetric AGN get lower rank
-        rank[ipagn] += 5
-
-        # CV get lower rankp
-        rank[ipcv] += 5
-
-        # photometric SN get lower rank
-        rank[ipsn] += 5
-
-        # photometric potential SN get somewhat lower rank
-        rank[ipsn_m] += 3
-
-        # increase rank value by number of days we didnt see any detections
-        rank += np.clip(metrics["age"], 3, 1000) / 10
-
-        # small preference for source with more detections
-        rank -= np.clip(metrics["ndetections"], 1, 10) / 10
-
-        # strong anti preference for sources with many negative subtractions
-        rank += (
-            metrics["ndetections_negative"]
-            / np.clip(metrics["ndetections"], 1, 1e99)
-            * 10
-        )
-
-        # no ranking based on offset for now, because symatics can be large
-        # rank += np.clip(metrics['offset_sig'], 2., 20)
-        # rank += np.clip(metrics['offset_sig_ps1'], 2., 20)
-
-        # brighter source somewhat higher rank
-        rank += np.clip(metrics["peak_mag"] - 19, 0, 3)
-
-        # linear increase with magnitude flare-host mag difference
-        rank += np.clip(metrics["latest_diff_mag"], -2, 5) / 2
-
-        # small extra penalty for upper limits in last detection
-        # isignon = (metrics['lastest_obs_is_detection']==0) & (metrics['latest_maglim']>20)
-        # self.logger.info ('# sources with last obs is nondetection {}'.format(sum(isignon)))
-        # rank[isignon] +=0.5
-
-        # number one gets rank=1
-        rank -= np.nanmin(rank) - 1
-
-        return rank
-
-    # This print function needs to also show some info about current classification and current followup status
-    def print_ranking(self, filename, metrics, metrics_flex):
-        """ """
-
-        # header
-        ss = "#name           rank   mag     diff     age   neg/pos  off_stat_ztf off_stat_ps1  mean_color  color_slope     rise       fade   photo_class  official_class    more info"
-
-        for i in np.argsort(metrics["ranking"]):
-
-            ss += "\n{0} {1:6.1f}   {2:5.2f}   {3:5.2f}    {4:5.1f}   {5:5.2f}     {6:7.1f}     {7:7.1f}       {8:5.2f}      {9:7.4f}     {10:9.1f}  {11:9.1f}   {12:14}    {13:7}    {14}".format(
-                str(metrics_flex.iloc[i]["name"]),
-                float(metrics["ranking"].iloc[i]),
-                float(metrics.iloc[i]["latest_mag"]),
-                float(metrics.iloc[i]["latest_diff_mag"]),
-                float(metrics.iloc[i]["age"]),
-                float(
-                    metrics.iloc[i]["ndetections_negative"]
-                    / np.clip(metrics.iloc[i]["ndetections"], 1, 1e99)
-                ),
-                float(metrics.iloc[i]["offset_sig"]),
-                float(metrics.iloc[i]["offset_sig_ps1"]),
-                float(metrics_flex.iloc[i]["mean_color"]),
-                float(metrics_flex.iloc[i]["color_slope"]),
-                np.clip(float(metrics_flex.iloc[i]["sigma_rise"]), 0, 999),
-                np.clip(float(metrics_flex.iloc[i]["sigma_fade"]), 0, 999),
-                str(metrics_flex.iloc[i]["photoclass"]),
-                str(metrics.iloc[i]["classification"]),
-                str(metrics.iloc[i]["extra_info"]),
-            )
-
-        self.put(filename, bytes(ss + "\n", "utf-8"))
-
-    def make_sumplots(self, metrics, metrics_flex):
-        """
-        make summary plot
+        print some detection stats
+        and make summary plost
         currently hardcoded to work for ZTFBH Nuclear
+        date_str='yyyy-mm-dd', optional input to selected what date to print
+        days_back=60, days since the last detection  to be included in the plot
         """
 
-        from numpy import log10, sqrt, log
+        drop_dir = self.save_location + "/" + str(self.today.datetime.year)
+        if str(self.today.datetime.year) not in self.get_files(self.save_location):
+            self.create_folder(drop_dir)
+
+        plot_dir = drop_dir + "/" + self.today.datetime.strftime("%m-%d")
+        if self.today.datetime.strftime("%m-%d") not in self.get_files(drop_dir):
+            self.create_folder(plot_dir)
+
+        metrics, metrics_flex = self.collect_metrics(transients)
 
         inotbogus = np.array(
             [
@@ -550,11 +161,90 @@ class T3Ranking(DropboxUnit):
             ]
         )
 
-        results = metrics_flex[inotbogus].copy()
+        mjdmay = self.datetomjd(datetime.datetime(2018, 5, 1))
+        mjdnov = self.datetomjd(datetime.datetime(2018, 10, 1))
+        jdnow = self.datetomjd(self.today.datetime) + 2400000.5
+        mjdmax = np.nanmax(metrics_flex["mjd_peak"])
+
+        self.logger.info(
+            "date of max mjd_peak from fit: " + str(self.mjdtodate(mjdmax))
+        )
+
+        number_of_days = mjdmax - mjdnov
+        ipostnov = (
+            metrics_flex["mjd_peak"].values > mjdnov
+        )  # used for printing detection stat
+        irecent = metrics["latest_jd"].values > -999  # select all, deprecated daysback
+
+        results = metrics_flex.iloc[ipostnov & inotbogus].copy()
+        self.logger.info("# of days since 2018-Nov-1: " + str(number_of_days))
+
+        mag_lim = np.arange(20, 18, -0.5)
+        iokrise = results["n_rise"] > 2
+
+        self.logger.info("\n>2 pre-peak detections & not AGN:")
+
+        for magl in mag_lim:
+            ilim = results["mag_peak"] < magl
+            rr = results[iokrise & ilim].copy()
+            inotagn = (rr["photoclass"] != "AGN?") & (rr["classification"] != "AGN")
+            self.logger.info(
+                "{0:0.1f} {1:0.1f}/week".format(magl, sum(inotagn) / number_of_days * 7)
+            )
+
+        self.logger.info("\n>2 pre-peak detections & not AGN & not photo SNe:")
+
+        for magl in mag_lim:
+            ilim = results["mag_peak"] < magl
+            rr = results[iokrise & ilim].copy()
+            inotagn = (rr["photoclass"] != "AGN?") & (rr["classification"] != "AGN")
+            inotsn = rr["photoclass"] == "not Ia?"
+            self.logger.info(
+                "{0:0.1f} {1:0.1f}/week".format(
+                    magl, sum(inotsn & inotagn) / number_of_days * 7
+                )
+            )
+
+        self.logger.info("\n\n>3 post-peak detections & not AGN:")
+        iokfade = results["n_fade"] > 3
+        for magl in mag_lim:
+            ilim = results["mag_peak"] < magl
+            rr = results[iokfade & ilim].copy()
+            inotagn = (rr["photoclass"] != "AGN?") & (rr["classification"] != "AGN")
+            self.logger.info(
+                "{0:0.1f} {1:0.1f}/week".format(magl, sum(inotagn) / number_of_days * 7)
+            )
+
+        self.logger.info(
+            "\n\n>3 post-peak detections & TDE candidate (blue or not cooling):"
+        )
+        iokfade = results["n_fade"] > 3
+        for magl in mag_lim:
+            ilim = results["mag_peak"] < magl
+            rr = results[iokfade & ilim].copy()
+            itde = [bool("TDE" in pc) for pc in rr["photoclass"] if "bad" not in pc]
+            self.logger.info(
+                "{0:0.1f} {1:0.1f}/week".format(magl, sum(itde) / number_of_days * 7)
+            )
+
+        self.logger.info("\n>10 post-peak detections & TDE candidate & not red")
+        iokfade = results["n_fade"] > 3
+        for magl in mag_lim:
+            ilim = results["mag_peak"] < magl
+            rr = results[iokfade & ilim].copy()
+            itde = [
+                "TDE" in pc
+                for pc in rr["photoclass"]
+                if "red" not in pc and "bad" not in pc
+            ]
+            self.logger.info(
+                "{0:0.1f} {1:0.1f}/week".format(magl, sum(itde) / number_of_days * 7)
+            )
+
+        results = metrics_flex[irecent & inotbogus].copy()
         if len(results) == 0:
             return
 
-        # some cuts on the Fritz/Marshal/TNS/catalog labels (from classifyme)
         iquestion = np.array(
             [
                 ("?" in c) and (c != "TDE?")
@@ -591,11 +281,14 @@ class T3Ranking(DropboxUnit):
 
         # rename for GOT
         # SvV to do: make a version of the summary plot with all the TDEs
-        # GoT_dict = self.read_file('/mampel/misc/GOTnames.json')[1].json()
+        GoT_dict = self.read_file("/mampel/misc/GOTnames.json")[1].json()
 
-        # for i, source in results.iterrows():
-        #   if source['name'] in GoT_dict.keys():
-        #       source['name'] = GoT_dict[source['name']]
+        for i, source in results.iterrows():
+            if source["name"] in GoT_dict.keys():
+                source["name"] = GoT_dict[source["name"]]
+
+        # results[results['name']=='ZTF18ablllyw'] = 'ZTF18ablllyw (SN?)' # SN with pre-cursor?!
+        # results[results['name']=='ZTF18aayatjf'] = 'ZTF18aayatjf (SN?)' # slow fading SN
 
         # add marshal class to name (for plotting)
         results["name"] = results.apply(
@@ -641,13 +334,12 @@ class T3Ranking(DropboxUnit):
             plt.hist(results[ipl]["mag_peak"], range=[17, 22], bins=20)
             plt.xlabel("peak mag")
 
-            plot_fname = self.plot_dir + "/all_maghisto.pdf"
+            plot_fname = plot_dir + "/all_maghisto.pdf"
             self.plt2box(plt, plot_fname)
 
         # ------
         # rise / fade
         finfo = "{0:30} {1:10} {2:10}\n".format("name", "rise_time", "fade_rime")
-
         ipl = (
             (results["n_rise"] > 2)
             & (results["n_fade"] > 2)
@@ -663,7 +355,7 @@ class T3Ranking(DropboxUnit):
             plt.hist(results[ipl]["mag_peak"], range=[17, 22], bins=20)
             plt.xlabel("peak mag")
 
-            plot_fname = self.plot_dir + "/rise_fade_maghisto.pdf"
+            plot_fname = plot_dir + "/rise_fade_maghisto.pdf"
             self.plt2box(plt, plot_fname)
 
         reference_agn = pd.read_csv(
@@ -720,14 +412,14 @@ class T3Ranking(DropboxUnit):
                     plt.text(x[i], y[i], nm, fontsize=4, zorder=5)
             elif labl == "unknown":
                 for i, nm in enumerate(results[ipl & idx]["name"]):
-                    if x[i] > 0 or y[i] > 1.0:
+                    if x[i] > 1.2 or y[i] > 1.6:
                         finfo += "{0:26} {1:10.3f}     {2:10.3f}\n".format(
                             nm, x[i], y[i]
                         )
                         plt.text(x[i], y[i], nm, fontsize=3, zorder=6)
             elif labl != "AGN":
                 for i, nm in enumerate(results[ipl & idx]["name"]):
-                    if (x[i] > 0 or y[i] > 1.0) or ("ZTF" in nm is False):
+                    if (x[i] > 1.3 or y[i] > 1.5) or ("ZTF" in nm is False):
                         finfo += "{0:26} {1:10.3f}     {2:10.3f}\n".format(
                             nm, x[i], y[i]
                         )
@@ -774,7 +466,7 @@ class T3Ranking(DropboxUnit):
         plt.xlim(0.7, 2.5)
         plt.ylim(1.0, 2.5)
 
-        plot_fname = self.plot_dir + "/rise_fade.pdf"
+        plot_fname = plot_dir + "/rise_fade.pdf"
         self.plt2box(plt, plot_fname)
 
         # also plot the known TDEs
@@ -810,7 +502,7 @@ class T3Ranking(DropboxUnit):
             plt.hist(results[ipl]["mag_peak"], range=[17, 22], bins=20)
             plt.xlabel("peak mag")
 
-            plot_fname = self.plot_dir + "/color_change_maghisto.pdf"
+            plot_fname = plot_dir + "/color_change_maghisto.pdf"
             self.plt2box(plt, plot_fname)
 
         plt.clf()
@@ -895,7 +587,7 @@ class T3Ranking(DropboxUnit):
         # txt.set_bbox(dict(facecolor='white', alpha=0.8, edgecolor='w'))
 
         plt.title("late-time (post-peak) selection")
-        plot_fname = self.plot_dir + "/color_change.pdf"
+        plot_fname = plot_dir + "/color_change.pdf"
         self.plt2box(plt, plot_fname)
 
         # also plot the known TDEs
@@ -930,7 +622,7 @@ class T3Ranking(DropboxUnit):
             plt.hist(results[ipl]["mag_peak"], range=[17, 22], bins=10)
             plt.xlabel("peak mag")
 
-            plot_fname = self.plot_dir + "/rise_color_maghisto.pdf"
+            plot_fname = plot_dir + "/rise_color_maghisto.pdf"
             self.plt2box(plt, plot_fname)
 
         plt.clf()
@@ -1028,7 +720,7 @@ class T3Ranking(DropboxUnit):
         plt.xlim(-0.6, 0.8)
         plt.ylim(log10(4), log10(300))
 
-        plot_fname = self.plot_dir + "/rise_color.pdf"
+        plot_fname = plot_dir + "/rise_color.pdf"
         self.plt2box(plt, plot_fname)
 
         # also plot the known TDEs
@@ -1048,22 +740,91 @@ class T3Ranking(DropboxUnit):
 
         # as a bonus: write a file with the names of TDE candidates (based on some boxing)
         # for each of the plots (requested by Suvi)
-        self.put(self.plot_dir + "/boxed.txt", bytes(finfo, "utf-8"))
+        self.put(plot_dir + "/boxed.txt", bytes(finfo, "utf-8"))
 
-    # pyplot to dropbox function
-    def plt2box(self, plt, fname):
-        """
-        write PDF of plot in pyplot to dropbox
-        (could be more neat to work with ax objects everywhere, but hey)
-        >> plt2box(plt, plot_name)
-        """
-        buf = io.BytesIO()
-        ax = plt.gca()
-        ax.figure.savefig(buf, format="pdf")
-        buf.seek(0)
-        self.put(fname, buf.read())
+        self.commit()
 
-    # some last helper functions
+    def collect_metrics(self, transients):
+        """ """
+        jd_today = self.today.jd
+
+        alert_name = "/mampel/alerts"
+        alert_folders = self.get_files(alert_name)
+        if "ps1_offset.json" not in alert_folders:
+            buf = io.BytesIO()
+            buf.write(bytes(json.dumps({}), "utf-8"))
+            buf.seek(0)
+            self.put(alert_name + "/ps1_offset.json", buf.read())
+            ps1_offset = {}
+        else:
+            ps1_offset = self.read_file(alert_name + "/ps1_offset.json")[1].json()
+
+        if transients is not None:
+
+            local_sources = np.array(transients)  # deprecated daysback soln
+            newdetection_count = len(local_sources)
+            self.logger.info(
+                "Collecting metrics for {} transient(s)".format(newdetection_count)
+            )
+            metrics, metrics_flex = [], []
+            for i, tran_view in enumerate(local_sources):
+
+                # get classifcation plus some neoWISE info
+                classification, extra_info = classifyme.get_class(
+                    tran_view, self, self.logger, write=True
+                )
+
+                metrics_flex.append(self.get_fit_params(tran_view, classification))
+                metrics.append(self.get_simple_results(tran_view, classification))
+
+            metrics_flex = pd.DataFrame(metrics_flex, columns=flex_keys)
+            metrics = pd.DataFrame(metrics, columns=simple_keys)
+
+            self.logger.info(
+                "successfully collected metrics: "
+                + str(metrics_flex["name"].all() == metrics["name"].all())
+            )
+            if metrics_flex["name"].all() != metrics["name"].all():
+                warnings.warn(
+                    "WARNING: flex metrics and simple metrics are not aligned, plots may be erroneous."
+                )
+        else:
+            self.logger.info("no transients to rank!")
+
+        return metrics, metrics_flex
+
+    def get_fit_params(self, tran_view, classification):
+        try:
+            fit_params = (tran_view.get_t2_result("T2FlexFit") or {})["fit_params"]
+            return {**fit_params, **{"classification": classification}}
+
+        except KeyError:
+            self.logger.warn(
+                "WARNING: No Flex fit for source {}".format(tran_view.stock["name"][0])
+            )
+            return {
+                "name": tran_view.stock["name"][0],
+                "classification": classification,
+            }
+
+    def get_simple_results(self, tran_view, classification):
+        try:
+            simple_results = (tran_view.get_t2_result("T2SimpleMetrics") or {})[
+                "metrics"
+            ]
+            return {**simple_results, **{"classification": classification}}
+
+        except KeyError:
+            self.logger.warn(
+                "WARNING: No simple metrics for source {}".format(
+                    tran_view.stock["name"][0]
+                )
+            )
+            return {
+                "name": tran_view.stock["name"][0],
+                "classification": classification,
+            }
+
     def datetomjd(self, d):
         d0 = datetime.datetime(1858, 11, 17, 0, 0, 0)
         dt = d - d0

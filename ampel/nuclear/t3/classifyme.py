@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/contrib/ztfbh/t3/classifyme.py
+# File              : ampel/nuclear/t3/classifyme.py
 # License           : BSD-3-Clause
 # Author            : mitchell@nyu.edu & sjoert@nyu.edu
 # Date              : 08.06.2020

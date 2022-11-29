@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/contrib/ztfbh/t0/NuclearFilter.py
+# File              : ampel/nuclear/t0/NuclearFilter.py
 # License           : BSD-3-Clause
 # Author            : sjoertvv <sjoert@umd.edu>
 # Date              : 26.02.2018

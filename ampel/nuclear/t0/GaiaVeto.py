@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/contrib/ztfbh/t0/GaiaVeto.py
+# File              : ampel/nuclear/t0/GaiaVeto.py
 # License           : BSD-3-Clause
 # Author            : sjoertvv <sjoert@astro.umd.edu>
 # Date              : 26.02.2018
@@ -75,7 +75,7 @@ class GaiaVetoMixin(CatalogMatchUnit):
                 ztf_g, ztf_r = np.median(magnr_g), np.median(magnr_R)
                 gr = ztf_g - ztf_r
 
-                # Gaia_from_ztf = ztf_g -0.0662 -0.7854*gr -0.2859*gr**2 +0.0145*gr**3 			# from Jordi (2010) #https://arxiv.org/abs/1008.0815
+                # Gaia_from_ztf = ztf_g -0.0662 -0.7854*gr -0.2859*gr**2 +0.0145*gr**3          # from Jordi (2010) #https://arxiv.org/abs/1008.0815
                 Gaia_from_ztf = (
                     ztf_g
                     - 0.038025
@@ -105,7 +105,7 @@ class GaiaVetoMixin(CatalogMatchUnit):
 
             # convert from SDSS to Gaia
             gi = sdss_mag["g"] - sdss_mag["i"]
-            # Gaia_from_sdss = sdss_mag['g']-0.0912   -0.5310*gi  -0.1042*gi**2   +0.0068*gi**3  	# (DR0, Jordi+18, https://arxiv.org/abs/1008.0815)
+            # Gaia_from_sdss = sdss_mag['g']-0.0912   -0.5310*gi  -0.1042*gi**2   +0.0068*gi**3     # (DR0, Jordi+18, https://arxiv.org/abs/1008.0815)
             Gaia_from_sdss = (
                 sdss_mag["g"]
                 - 0.074189

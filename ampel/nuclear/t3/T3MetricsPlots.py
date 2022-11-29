@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/contrib/ztfbh//t3/T3MetricsPlots.py
+# File              : ampel/nuclear/t3/T3MetricsPlots.py
 # License           : BSD-3-Clause
 # Author            : mitchell@nyu.edu
 # Date              : 08.06.2020

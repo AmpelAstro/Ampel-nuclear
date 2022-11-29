@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/contrib/ztfbh/t3/dropboxIO.py
+# File              : ampel/nuclear/t3/dropboxIO.py
 # License           : BSD-3-Clause
 # Author            : ?
 # Date              : ?

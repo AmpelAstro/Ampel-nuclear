@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# File              : ampel/contrib/ztfbh/t2/T2FlexFit.py
+# File              : ampel/nuclear/t2/T2FlexFit.py
 # License           : BSD-3-Clause
 # Author            : mitchell@nyu.edu
 # Date              : 28.04.2020
