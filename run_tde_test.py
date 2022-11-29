@@ -5,7 +5,7 @@ from astropy.time import Time
 import matplotlib
 
 from ampel.log.AmpelLogger import AmpelLogger
-from ampel.contrib.ztfbh.t0.NuclearFilter import NuclearFilter
+from ampel.nuclear.t0.NuclearFilter import NuclearFilter
 
 from ampel.ztf.t0.load.ZTFArchiveAlertLoader import ZTFArchiveAlertLoader
 from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier

@@ -4,7 +4,7 @@
 # License           : BSD-3-Clause
 # Author            : mitchell@nyu.edu
 # Date              : 08.06.2020
-# Last Modified Date: 22.11.2022
+# Last Modified Date: 29.11.2022
 # Last Modified By  : simeon.reusch@desy.de
 
 import io, time, json
@@ -24,10 +24,10 @@ from ampel.view.T3Store import T3Store
 from ampel.view.LightCurve import LightCurve
 from ampel.struct.UnitResult import UnitResult
 from ampel.abstract.AbsPhotoT3Unit import AbsPhotoT3Unit
-from ampel.contrib.ztfbh.flexfit import flexfit
-from ampel.contrib.ztfbh.t3.classifyme import jsonify
-from ampel.contrib.ztfbh.t2.T2FlexFit import get_raw_lc
-from ampel.contrib.ztfbh.t3.dropboxIO import DropboxUnit
+from ampel.nuclear.flexfit import flexfit
+from ampel.nuclear.t3.classifyme import jsonify
+from ampel.nuclear.t2.T2FlexFit import get_raw_lc
+from ampel.nuclear.t3.dropboxIO import DropboxUnit
 
 dump_keys = [
     "name",

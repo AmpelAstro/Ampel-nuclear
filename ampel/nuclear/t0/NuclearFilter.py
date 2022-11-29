@@ -4,7 +4,7 @@
 # License           : BSD-3-Clause
 # Author            : sjoertvv <sjoert@umd.edu>
 # Date              : 26.02.2018
-# Last Modified Date: 07.06.2022
+# Last Modified Date: 29.11.2022
 # Last Modified By  : sr <simeon.reusch@desy.de>
 
 from typing import Optional, Union, List, Dict, Any
@@ -15,7 +15,7 @@ import astropy.coordinates  # need for l, b computation
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
 from ampel.abstract.AbsAlertFilter import AbsAlertFilter
 
-from ampel.contrib.ztfbh.t0.GaiaVeto import GaiaVetoMixin
+from ampel.nuclear.t0.GaiaVeto import GaiaVetoMixin
 
 REJECTION_REASON_CODES = {
     999: "Passed",

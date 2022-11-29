@@ -13,7 +13,7 @@ import logging
 
 logging.basicConfig()
 
-from ampel.contrib.ztfbh.flexfit import flex_metrics
+from ampel.nuclear.flexfit import flex_metrics
 from ampel.abstract.AbsLightCurveT2Unit import AbsLightCurveT2Unit
 from ampel.view import LightCurve
 from ampel.types import UBson

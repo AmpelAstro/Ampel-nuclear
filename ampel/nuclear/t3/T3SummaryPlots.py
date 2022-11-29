@@ -4,7 +4,7 @@
 # License           : BSD-3-Clause
 # Author            : mitchell@nyu.edu
 # Date              : 08.06.2020
-# Last Modified Date: 15.11.2022
+# Last Modified Date: 29.11.2022
 # Last Modified By  : simeon.reusch@desy.de
 
 
@@ -26,8 +26,8 @@ from ampel.view.TransientView import TransientView
 from ampel.view.T3Store import T3Store
 from ampel.struct.UnitResult import UnitResult
 from ampel.abstract.AbsPhotoT3Unit import AbsPhotoT3Unit
-from ampel.contrib.ztfbh.t3.dropboxIO import DropboxUnit
-import ampel.contrib.ztfbh.t3.classifyme as classifyme
+from ampel.nuclear.t3.dropboxIO import DropboxUnit
+import ampel.nuclear.t3.classifyme as classifyme
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
