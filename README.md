@@ -28,6 +28,8 @@ Now you need to export the following tokens
 ```
 export AMPEL_ARCHIVE_TOKEN, DROPBOX_TOKEN and FRITZ_TOKEN
 ```
+
+## Test
 To run the test, issue
 `./run_tde_test.py -i`
 The `-i` initiates a new stream token. To change the date, use `-d YYYY-MM-DD` for a certain day. The script will request alerts for the 24 hours after this date.
