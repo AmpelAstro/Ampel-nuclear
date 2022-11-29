@@ -1,7 +1,12 @@
 # Ampel-ZTFbh
 Central repository to host private AMPEL code from the ZTFbh SWG.
 
-## Instructions
+## Installation
+### Prerequisites
+You need to export environment variables for the [AMPEL ZTF archive](https://ampelproject.github.io/astronomy/ztf/index) (tokens are available [here](https://ampel.zeuthen.desy.de/live/dashboard/tokens)), for the dropbox API and for [Fritz](https://fritz.science/).
+
+Furthermore, you need a running instance of [MongoDB](https://www.mongodb.com/docs/manual/installation/).
+
 Create a fresh Python 3.10 conda env
 ```
 conda create -n tde_filter_upgrade python=3.10
