@@ -107,7 +107,7 @@ def run(
     channel = "ZTFBH"
 
     ctx = DevAmpelContext.load(
-        config=AMPEL_CONF, db_prefix="ztfbh", purge_db=True, vault=vault
+        config=AMPEL_CONF, db_prefix="ampel-nuclear", purge_db=True, vault=vault
     )
     ctx.add_channel(name=channel, access=["ZTF", "ZTF_PUB", "ZTF_PRIV"])
 
