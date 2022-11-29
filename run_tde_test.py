@@ -22,7 +22,9 @@ logger = AmpelLogger.get_logger()
 temp_dir_base = os.path.join(os.getcwd(), "temp")
 
 
-def run(initiate: bool = False, date: Optional[str] = False):
+def run(
+    initiate: bool = False, date: Optional[str] = False, push_to_dropbox: bool = False
+):
     # Decent filter parameters
     filter_config = {
         "minDetections": 3,
@@ -304,83 +306,91 @@ def run(initiate: bool = False, date: Optional[str] = False):
 
     t2w.run()
 
+    db_config = {
+        "dropbox_token": {"label": "dropbox/token"},
+    }
+    if not push_to_dropbox:
+        db_config.update(
+            {
+                "dryRun": True,
+                "dryRunDir": temp_dir_base,
+            }
+        )
+
+    t3_metrics_config = db_config.copy()
+    t3_ranking_config = db_config.copy()
+    t3_plotneowise_config = db_config.copy()
+
+    t3_metrics_config.update({"verbose": True})
+    t3_plotneowise_config.update(
+        {
+            "apply_qcuts": True,
+            "plot_allWISE": False,
+            "verbose": True,
+        }
+    )
+
+    execute_config_dict = {
+        "unit": "T3ReviewUnitExecutor",
+        "config": {
+            "supply": {
+                "unit": "T3DefaultBufferSupplier",
+                "config": {
+                    "select": {
+                        "unit": "T3StockSelector",
+                        "config": {"channel": channel},
+                    },
+                    "load": {
+                        "unit": "T3SimpleDataLoader",
+                        "config": {
+                            "directives": [
+                                "TRANSIENT",
+                                "T2RECORD",
+                                "DATAPOINT",
+                                "COMPOUND",
+                            ],
+                            "channel": channel,
+                        },
+                    },
+                    "complement": [
+                        {"unit": "TNSReports", "config": {}},
+                        {
+                            "unit": "GROWTHMarshalReport",
+                            "config": {},
+                        },
+                        {
+                            "unit": "FritzReport",
+                            "config": {"token": {"label": "fritz/token"}},
+                        },
+                    ],
+                },
+            },
+            "stage": {
+                "unit": "T3SequentialStager",
+                "config": {
+                    "execute": [
+                        {
+                            "unit": "T3MetricsPlots",
+                            "config": t3_metrics_config,
+                        },
+                        {
+                            "unit": "T3Ranking",
+                            "config": t3_ranking_config,
+                        },
+                        {
+                            "unit": "T3PlotNeoWISE",
+                            "config": t3_plotneowise_config,
+                        },
+                    ],
+                },
+            },
+        },
+    }
+
     t3p = ctx.new_context_unit(
         unit="T3Processor",
         process_name="T3Processor_test",
-        execute=[
-            {
-                "unit": "T3ReviewUnitExecutor",
-                "config": {
-                    "supply": {
-                        "unit": "T3DefaultBufferSupplier",
-                        "config": {
-                            "select": {
-                                "unit": "T3StockSelector",
-                                "config": {"channel": channel},
-                            },
-                            "load": {
-                                "unit": "T3SimpleDataLoader",
-                                "config": {
-                                    "directives": [
-                                        "TRANSIENT",
-                                        "T2RECORD",
-                                        "DATAPOINT",
-                                        "COMPOUND",
-                                    ],
-                                    "channel": channel,
-                                },
-                            },
-                            "complement": [
-                                {"unit": "TNSReports", "config": {}},
-                                {
-                                    "unit": "GROWTHMarshalReport",
-                                    "config": {},
-                                },
-                                {
-                                    "unit": "FritzReport",
-                                    "config": {"token": {"label": "fritz/token"}},
-                                },
-                            ],
-                        },
-                    },
-                    "stage": {
-                        "unit": "T3SequentialStager",
-                        "config": {
-                            "execute": [
-                                {
-                                    "unit": "T3MetricsPlots",
-                                    "config": {
-                                        "verbose": True,
-                                        "dryRun": True,
-                                        "dryRunDir": temp_dir_base,
-                                        "dropbox_token": {"label": "dropbox/token"},
-                                    },
-                                },
-                                {
-                                    "unit": "T3Ranking",
-                                    "config": {
-                                        "dryRun": True,
-                                        "dryRunDir": temp_dir_base,
-                                        "dropbox_token": {"label": "dropbox/token"},
-                                    },
-                                },
-                                {
-                                    "unit": "T3PlotNeoWISE",
-                                    "config": {
-                                        "apply_qcuts": True,
-                                        "plot_allWISE": False,
-                                        "verbose": True,
-                                        "dryRun": True,
-                                        "dryRunDir": temp_dir_base,
-                                        "dropbox_token": {"label": "dropbox/token"},
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                },
-            }
-        ],
+        execute=[execute_config_dict],
     )
 
     t3p.run()
@@ -403,6 +413,10 @@ if __name__ == "__main__":
         help="Enter a date in the form YYYY-MM-DD",
     )
 
+    parser.add_argument(
+        "-p", "--push", action="store_true", help="NO dry run, push to dropbox instead"
+    )
+
     args = parser.parse_args()
 
-    run(initiate=args.initiate, date=args.date)
+    run(initiate=args.initiate, date=args.date, push_to_dropbox=args.push)
