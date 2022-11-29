@@ -1,0 +1,408 @@
+#!/usr/bin/env python
+import requests, os, argparse, time, datetime
+from typing import Optional
+from astropy.time import Time
+import matplotlib
+
+from ampel.log.AmpelLogger import AmpelLogger
+from ampel.contrib.ztfbh.t0.NuclearFilter import NuclearFilter
+
+from ampel.ztf.t0.load.ZTFArchiveAlertLoader import ZTFArchiveAlertLoader
+from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
+from ampel.secret.AmpelVault import AmpelVault
+from ampel.secret.DictSecretProvider import DictSecretProvider
+from ampel.dev.DevAmpelContext import DevAmpelContext
+from ampel.secret.NamedSecret import NamedSecret
+
+
+matplotlib.use("Agg")
+
+logger = AmpelLogger.get_logger()
+
+temp_dir_base = os.path.join(os.getcwd(), "temp")
+
+
+def run(initiate: bool = False, date: Optional[str] = False):
+    # Decent filter parameters
+    filter_config = {
+        "minDetections": 3,
+        "maxDistPS1source": 0.5,
+        "closePS1dist": 0.5,
+        "maxDeltaRad": 0.5,
+        "diffmagLimit": 20,
+        "maxDeltaMag": 2.5,
+        "resource": {
+            "ampel-ztf/catalogmatch": "https://ampel.zeuthen.desy.de/api/catalogmatch/"
+        },
+    }
+
+    t0filter = NuclearFilter(**filter_config, logger=logger)
+    t0filter.post_init()
+
+    if date:
+        date_format = "%Y-%m-%d"
+        req_date = str(datetime.datetime.strptime(date, date_format))
+        startdate_jd = Time(req_date, format="iso", scale="utc").jd
+        delta_t = 1
+        enddate_jd = startdate_jd + delta_t
+
+    else:
+        startdate_jd = 2459899.04167
+        enddate_jd = 2459899.045167
+
+    query = {
+        "jd": {
+            "$gt": startdate_jd,
+            "$lt": enddate_jd,
+        },
+        "candidate": {
+            "distpsnr1": {"$lt": filter_config["maxDistPS1source"]},
+            "rb": {"$gt": 0.3},
+            "magpsf": {"$lte": 20},
+            "sgscore1": {"$lte": 0.9},
+            "ndethist": {
+                "$gte": filter_config["minDetections"],
+            },
+            "isdiffpos": {"$in": ["t", "1"]},
+            "nmtchps": {"$lte": 100},
+        },
+    }
+
+    if initiate:
+        endpoint = (
+            "https://ampel.zeuthen.desy.de/api/ztf/archive/v3/streams/from_query?"
+        )
+        header = {"Authorization": "bearer " + os.environ["AMPEL_ARCHIVE_TOKEN"]}
+
+        response = requests.post(endpoint, headers=header, json=query)
+
+        stream_token = response.json()["resume_token"]
+
+        print("Sleeping for 10 seconds to give the archive DB some time")
+        print(f"Your stream_token is: {stream_token}")
+        with open("stream_token.txt", "w") as f:
+            f.write(str(stream_token))
+
+        time.sleep(10)
+
+    else:
+        stream_token_infile = open("stream_token.txt", "r")
+        stream_token = stream_token_infile.read()
+        print(f"Your stream_token is: {stream_token}")
+
+    # Create a secret vault
+    secrets = {
+        "ztf/archive/token": os.environ["AMPEL_ARCHIVE_TOKEN"],
+        "dropbox/token": os.environ["DROPBOX_TOKEN"],
+        "fritz/token": os.environ["FRITZ_TOKEN"],
+    }
+
+    vault = AmpelVault([DictSecretProvider(secrets)])
+
+    cwd = os.getcwd()
+    AMPEL_CONF = f"{cwd}/ampel_conf.yaml"
+
+    channel = "ZTFBH"
+
+    ctx = DevAmpelContext.load(
+        config=AMPEL_CONF, db_prefix="ztfbh", purge_db=True, vault=vault
+    )
+    ctx.add_channel(name=channel, access=["ZTF", "ZTF_PUB", "ZTF_PRIV"])
+
+    # Will use NED for spectroscopic redshifts.
+    cat_conf = {
+        "catalogs": {
+            "SDSS_spec": {
+                "use": "extcats",
+                "rs_arcsec": 2.0,
+                "keys_to_append": ["z", "bptclass", "subclass"],
+                "all": False,
+            },
+            "NEDz": {
+                "use": "catsHTM",
+                "rs_arcsec": 2.0,
+                "keys_to_append": ["ObjType", "Velocity", "z"],
+            },
+            "GLADEv23": {
+                "use": "extcats",
+                "rs_arcsec": 2,
+                "keys_to_append": ["z", "dist", "dist_err", "flag1", "flag2", "flag3"],
+            },
+            "LSPhotoZZou": {
+                "use": "extcats",
+                "rs_arcsec": 2.0,
+                "keys_to_append": [
+                    "photoz",
+                    "ra",
+                    "dec",
+                    "e_photoz",
+                    "specz",
+                    "_6",
+                    "logMassBest",
+                    "logMassInf",
+                    "logMassSup",
+                ],
+                "pre_filter": None,
+                "post_filter": None,
+                "all": False,
+            },
+            "wiseScosPhotoz": {
+                "use": "extcats",
+                "rs_arcsec": 2.0,
+                "keys_to_append": [
+                    "zPhoto_Corr",
+                    "ra",
+                    "dec",
+                    "wiseID",
+                    "w1mCorr",
+                    "w2mCorr",
+                ],
+                "pre_filter": None,
+                "post_filter": None,
+            },
+            "twoMPZ": {
+                "use": "extcats",
+                "rs_arcsec": 2.0,
+                "keys_to_append": ["zPhoto", "ra", "dec", "zSpec"],
+                "pre_filter": None,
+                "post_filter": None,
+            },
+            "PS1_photoz": {
+                "use": "extcats",
+                "rs_arcsec": 2.0,
+                "keys_to_append": [
+                    "raMean",
+                    "decMean",
+                    "z_phot",
+                    "z_photErr",
+                    "z_phot0",
+                    "_2",
+                ],
+                "pre_filter": None,
+                "post_filter": None,
+            },
+            "PS1": {
+                "use": "catsHTM",
+                "rs_arcsec": 1,
+            },
+            "brescia": {
+                "use": "extcats",
+                "rs_arcsec": 2.0,
+                "keys_to_append": [],
+            },
+            "milliquas": {
+                "use": "extcats",
+                "rs_arcsec": 2.0,
+                "keys_to_append": ["broad_type", "ref_name"],
+            },
+            "portsmouth": {
+                "use": "extcats",
+                "rs_arcsec": 2.0,
+                "keys_to_append": ["sigma_stars", "sigma_stars_err", "bpt"],
+            },
+            "ptfvar": {
+                "use": "extcats",
+                "rs_arcsec": 2.0,
+                "keys_to_append": [],
+            },
+            "varstars": {
+                "use": "extcats",
+                "rs_arcsec": 2.0,
+                "keys_to_append": [],
+            },
+            "wise_color": {
+                "use": "extcats",
+                "rs_arcsec": 2.0,
+                "keys_to_append": ["W1mW2"],
+            },
+        }
+    }
+
+    flexfit_conf = {
+        "oldest_upper_limits": 14,
+        "max_post_peak": 200,
+    }
+
+    directives = [
+        {
+            "channel": channel,
+            "filter": {
+                "unit": "NuclearFilter",
+                "config": filter_config,
+                "on_stock_match": "bypass",
+            },
+            "ingest": {
+                "mux": {
+                    "unit": "ZiArchiveMuxer",
+                    "config": {"history_days": 999, "future_days": 999},
+                    "combine": [
+                        {
+                            "unit": "ZiT1Combiner",
+                            "state_t2": [
+                                {
+                                    "unit": "T2FlexFit",
+                                    "config": flexfit_conf,
+                                },
+                                {
+                                    "unit": "T2SimpleMetrics",
+                                },
+                                {
+                                    "unit": "T2LightCurveSummary",
+                                },
+                            ],
+                        }
+                    ],
+                    "insert": {
+                        "point_t2": [
+                            {
+                                "unit": "T2CatalogMatch",
+                                "config": cat_conf,
+                                "ingest": {
+                                    "filter": "PPSFilter",
+                                    "sort": "jd",
+                                    "select": "first",
+                                },
+                            },
+                        ],
+                    },
+                }
+            },
+        }
+    ]
+
+    loader_config = {
+        "archive": "https://ampel.zeuthen.desy.de/api/ztf/archive/v3",
+        "stream": stream_token,
+    }
+
+    ac = ctx.new_context_unit(
+        unit="AlertConsumer",
+        process_name="AP_test",
+        iter_max=1000000000,
+        log_profile=os.environ.get("log_profile", "debug"),
+        shaper="ZiDataPointShaper",
+        compiler_opts="ZiCompilerOptions",
+        supplier={
+            "unit": "ZiAlertSupplier",
+            "config": {
+                "deserialize": None,
+                "loader": {"unit": "ZTFArchiveAlertLoader", "config": loader_config},
+            },
+        },
+        directives=directives,
+    )
+
+    n = ac.run()
+
+    print(f"Processed {n} alerts locally (based on query output).")
+
+    t2w = ctx.new_context_unit(
+        unit="T2Worker",
+        process_name="T2Worker_test",
+        log_profile=os.environ.get("log_profile", "default"),
+    )
+
+    t2w.run()
+
+    t3p = ctx.new_context_unit(
+        unit="T3Processor",
+        process_name="T3Processor_test",
+        execute=[
+            {
+                "unit": "T3ReviewUnitExecutor",
+                "config": {
+                    "supply": {
+                        "unit": "T3DefaultBufferSupplier",
+                        "config": {
+                            "select": {
+                                "unit": "T3StockSelector",
+                                "config": {"channel": channel},
+                            },
+                            "load": {
+                                "unit": "T3SimpleDataLoader",
+                                "config": {
+                                    "directives": [
+                                        "TRANSIENT",
+                                        "T2RECORD",
+                                        "DATAPOINT",
+                                        "COMPOUND",
+                                    ],
+                                    "channel": channel,
+                                },
+                            },
+                            "complement": [
+                                {"unit": "TNSReports", "config": {}},
+                                {
+                                    "unit": "GROWTHMarshalReport",
+                                    "config": {},
+                                },
+                                {
+                                    "unit": "FritzReport",
+                                    "config": {"token": {"label": "fritz/token"}},
+                                },
+                            ],
+                        },
+                    },
+                    "stage": {
+                        "unit": "T3SequentialStager",
+                        "config": {
+                            "execute": [
+                                {
+                                    "unit": "T3MetricsPlots",
+                                    "config": {
+                                        "verbose": True,
+                                        "dryRun": True,
+                                        "dryRunDir": temp_dir_base,
+                                        "dropbox_token": {"label": "dropbox/token"},
+                                    },
+                                },
+                                {
+                                    "unit": "T3Ranking",
+                                    "config": {
+                                        "dryRun": True,
+                                        "dryRunDir": temp_dir_base,
+                                        "dropbox_token": {"label": "dropbox/token"},
+                                    },
+                                },
+                                {
+                                    "unit": "T3PlotNeoWISE",
+                                    "config": {
+                                        "apply_qcuts": True,
+                                        "plot_allWISE": False,
+                                        "verbose": True,
+                                        "dryRun": True,
+                                        "dryRunDir": temp_dir_base,
+                                        "dropbox_token": {"label": "dropbox/token"},
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                },
+            }
+        ],
+    )
+
+    t3p.run()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run TDE filter")
+    parser.add_argument(
+        "-i",
+        "--initiate",
+        action="store_true",
+        help="Initiate a new stream",
+    )
+
+    parser.add_argument(
+        "-d",
+        "--date",
+        type=str,
+        default=None,
+        help="Enter a date in the form YYYY-MM-DD",
+    )
+
+    args = parser.parse_args()
+
+    run(initiate=args.initiate, date=args.date)
