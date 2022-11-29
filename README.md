@@ -4,7 +4,7 @@ Central repository to host private AMPEL code from the ZTFbh SWG.
 ## Instructions
 Create a fresh Python 3.10 conda env
 ```
-conda env create -n tde_filter_upgrade python=3.10
+conda create -n tde_filter_upgrade python=3.10
 conda activate tde_filter_upgrade
 ```
 Install is done via poetry:
