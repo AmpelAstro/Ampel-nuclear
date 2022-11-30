@@ -58,14 +58,14 @@ docs = ["Sphinx (>=5.1.1,<5.2.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)",
 
 [[package]]
 name = "ampel-core"
-version = "0.8.3b8"
+version = "0.8.3b9"
 description = "Alice in Modular Provenance-Enabled Land"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.11"
 
 [package.dependencies]
-ampel-interface = ">=0.8.3-beta.7,<0.9.0"
+ampel-interface = ">=0.8.3b9,<0.9.0"
 appdirs = ">=1.4.4,<2.0.0"
 prometheus-client = ">=0.10,<0.12"
 psutil = ">=5.8.0,<6.0.0"
@@ -113,7 +113,7 @@ ztf = ["ampel-ztf[kafka] (>=0.8.3-alpha.2,<0.8.4)"]
 
 [[package]]
 name = "ampel-interface"
-version = "0.8.3b8"
+version = "0.8.3b9"
 description = "Base classes for the Ampel analysis platform"
 category = "main"
 optional = false
@@ -167,8 +167,8 @@ develop = false
 [package.dependencies]
 aiohttp = "^3.7.3"
 ampel-alerts = "^0.8.3-beta.1"
-ampel-core = "^0.8.3-beta.7"
-ampel-interface = "^0.8.3-beta.6"
+ampel-core = "^0.8.3-beta.9"
+ampel-interface = "^0.8.3-beta.9"
 ampel-photometry = "^0.8.3-alpha.2"
 astropy = "^5.0"
 backoff = "^2.0.0"
@@ -189,7 +189,7 @@ plot = ["ampel-plot (==0.8.3)"]
 type = "git"
 url = "https://github.com/AmpelProject/Ampel-ZTF.git"
 reference = "HEAD"
-resolved_reference = "42146f507c9809f30699489b530d752f5db9b34a"
+resolved_reference = "7a1c62af4c73aa0cbe2d673e27ff905335d38c7b"
 
 [[package]]
 name = "appdirs"
@@ -1187,16 +1187,16 @@ ampel-alerts = [
     {file = "ampel_alerts-0.8.3b1-py3-none-any.whl", hash = "sha256:73138c7c4b8772b7f43d4076cdc15c5d39a3df170732bcc36f3c9ffdc2f0816f"},
 ]
 ampel-core = [
-    {file = "ampel_core-0.8.3b8-py3-none-any.whl", hash = "sha256:fa6d19025eeae5bb768903fa83461f05f4f767823e35c46716cbfd0d50d01cc5"},
-    {file = "ampel_core-0.8.3b8.tar.gz", hash = "sha256:ae4024138ed68c1cf2ca0d6671109d99319c60bed4c604ea6de52bbbb3b3b7cc"},
+    {file = "ampel_core-0.8.3b9-py3-none-any.whl", hash = "sha256:fb903edada6fec715fdefe3006f908f7ea23eee65cda57824379a3332af05a79"},
+    {file = "ampel_core-0.8.3b9.tar.gz", hash = "sha256:ce9c3018512f54f24f7b004f0b7f97ddd1261842eb4f1ec8a3ace2d1dfe0a1c9"},
 ]
 ampel-hu-astro = [
     {file = "ampel_hu_astro-0.8.3a6-py3-none-any.whl", hash = "sha256:998b6296ebef51cbaaba066fd8d3c1c62876190b66dbd2852e43b7ec67098083"},
     {file = "ampel_hu_astro-0.8.3a6.tar.gz", hash = "sha256:21b42c7bb532132ed2fb84241e5f63cac5fe21a0281357d7268d04f84d8da3f2"},
 ]
 ampel-interface = [
-    {file = "ampel_interface-0.8.3b8-py3-none-any.whl", hash = "sha256:f7d9c2d42e98da4302bee52ea5c1403a37792e97a6f3eb272e2c2d7c76f90743"},
-    {file = "ampel_interface-0.8.3b8.tar.gz", hash = "sha256:929c8ea5136176e64954a7529ed5209e29a6993f1997d7eee7347055f56af0b5"},
+    {file = "ampel_interface-0.8.3b9-py3-none-any.whl", hash = "sha256:db6ef448b184c7da7ecd0c56903c7f24cab74fbafdade77102dd2825d4efe762"},
+    {file = "ampel_interface-0.8.3b9.tar.gz", hash = "sha256:0f7b2c8987385f1d2f3f369b26a25498249d8ab99b218aa21bc5ef8390175b29"},
 ]
 ampel-photometry = [
     {file = "ampel-photometry-0.8.3a2.tar.gz", hash = "sha256:e2e1733991adcec59d656668aab3ee3d1777da31804283351455a66e29782185"},
