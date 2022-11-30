@@ -267,7 +267,6 @@ class T3Ranking(DropboxUnit):
             if isinstance(results_infile, str):
                 results_json = json.loads(results_infile)
             else:
-                print(results_infile)
                 results_json = results_infile[0].json()
 
             simple_results["offset_med_ps1"] = results_json["offset_med_ps1"]
