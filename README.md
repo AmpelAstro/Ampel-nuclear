@@ -1,4 +1,4 @@
-# Ampel-Nuclear
+# Ampel-nuclear
 Central repository to host AMPEL code to search for and analyze nuclear transients. At the moment, this is exclusively code from the ZTFbh science working group.
 
 ## Installation
