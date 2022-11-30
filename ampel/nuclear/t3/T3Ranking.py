@@ -135,7 +135,6 @@ class T3Ranking(DropboxUnit):
         self, gen: Generator[TransientView, T3Send, None], t3s: Optional[T3Store] = None
     ) -> Union[UBson, UnitResult]:
         """ """
-        # DUMMY FUNCTION FOR NOW
         transients = [t for t in gen]
         metrics, metrics_flex = self.collect_metrics(transients)
 
@@ -169,6 +168,10 @@ class T3Ranking(DropboxUnit):
             self.logger.info(
                 "Collecting metrics for {} transient(s)".format(newdetection_count)
             )
+
+            simple_res_list = []
+            flexfit_res_list = []
+
             for i, tran_view in enumerate(local_sources):
 
                 # get the classification and some extra info
@@ -177,18 +180,16 @@ class T3Ranking(DropboxUnit):
                     tran_view, self, self.logger, write=False
                 )
 
-                # save the classification to the (simple) metric
-                simple_results = self.get_simple_results(
+                simple_res = self.get_simple_results(
                     tran_view, classification, extra_info
                 )
-                simple_results["index"] = [0]
-                metrics = pd.DataFrame.from_dict(data=simple_results, orient="columns")
+                flexfit_res = self.get_fit_params(tran_view, classification)
 
-                # also parse the results form flex metric
-                fit_params = self.get_fit_params(tran_view, classification)
-                fit_params["index"] = [0]
+                simple_res_list.append(simple_res)
+                flexfit_res_list.append(flexfit_res)
 
-                metrics_flex = pd.DataFrame.from_dict(fit_params, orient="columns")
+            metrics = pd.DataFrame.from_records(simple_res_list)
+            metrics_flex = pd.DataFrame.from_records(flexfit_res_list)
 
             self.logger.info(
                 "successfully collected metrics: "
