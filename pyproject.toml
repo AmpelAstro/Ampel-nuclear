@@ -8,11 +8,11 @@ homepage = "https://ampelproject.github.io"
 repository = "https://github.com/AmpelProject/Ampel-nuclear"
 authors = [
     "Valery Brinnel",
+    "Jakob Nordin",
+    "Simeon Reusch",
+    "Robert Stein",
     "Jakob van Santen <jakob.van.santen@desy.de>",
     "Sjoert van Velzen",
-    "Robert Stein",
-    "Simeon Reusch",
-    "Jakob Nordin",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

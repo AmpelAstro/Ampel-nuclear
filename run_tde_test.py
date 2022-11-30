@@ -116,7 +116,7 @@ def run(
     ctx = DevAmpelContext.load(
         config=AMPEL_CONF,
         db_prefix="ampel-nuclear",
-        purge_db=True,
+        purge_db=False,
         one_db=True,
         vault=vault,
     )
