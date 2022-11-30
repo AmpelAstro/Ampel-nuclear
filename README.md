@@ -1,5 +1,5 @@
 # Ampel-ZTFbh
-Central repository to host private AMPEL code from the ZTFbh SWG.
+Central repository to host AMPEL code from the ZTFbh science working group.
 
 ## Installation
 ### Prerequisites
