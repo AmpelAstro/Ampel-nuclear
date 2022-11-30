@@ -7,7 +7,7 @@
 # Last Modified Date: 29.11.2022
 # Last Modified By  : simeon.reusch@desy.de
 
-import datetime, json, io, time
+import datetime, json, io, time, os
 
 from typing import Any, Optional, Union
 from collections.abc import Generator
@@ -295,6 +295,10 @@ class T3Ranking(DropboxUnit):
         self.metrics["ranking"] = ranking
         metrics = self.metrics
         metrics_flex = self.metrics_flex
+
+        if self.dryRunDir:
+            metrics.to_csv(os.path.join(self.dryRunDir, "metrics.csv"))
+            metrics_flex.to_csv(os.path.join(self.dryRunDir, "metrics_flex.csv"))
 
         base_name = (
             self.ranking_location + "/" + self.this_year + "/" + self.this_mmdd
