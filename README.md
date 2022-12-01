@@ -29,10 +29,14 @@ Now you need to export the following tokens
 export AMPEL_ARCHIVE_TOKEN, DROPBOX_TOKEN and FRITZ_TOKEN
 ```
 
+Note: this will throw some import errors, but you can ignore these because those packages are not needed locally. 
+
 ## Test
 To run the test, start your local MongoDB. And then issue
 
-`./run_tde_test.py -i`
+```
+./run_tde_test.py -i
+```
 
 The `-i` initiates (and saves) a new archive API stream token. To change the date, use `-d YYYY-MM-DD` for a certain day. The script will request alerts for the 24 hours after this date. 
 
