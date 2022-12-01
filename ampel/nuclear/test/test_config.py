@@ -1,10 +1,12 @@
-'''
-no longer works after Ampel update in March 2021
-'''
+from ampel.config.builder.DistConfigBuilder import DistConfigBuilder
+from ampel.config.builder.DisplayOptions import DisplayOptions
 
-# from ampel.config.builder.DistConfigBuilder import DistConfigBuilder
 
-# def test_config_build():
-#     cb = DistConfigBuilder(verbose=True)
-#     cb.load_distributions()
-#     cb.build_config(ignore_errors=False)
+def test_build_config() -> None:
+    cb = DistConfigBuilder(DisplayOptions(verbose=True, debug=True))
+    cb.load_distributions()
+    config = cb.build_config(
+        stop_on_errors=2,
+        config_validator="ConfigValidator",
+        get_unit_env=False,
+    )

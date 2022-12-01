@@ -18,7 +18,7 @@ t0_filter:
   unit: NuclearFilter
   config:
      minDetections: 3
-     minDistPS1source: 0.5
+     maxDistPS1source: 0.5
      closePS1dist: 0.5
      maxDeltaRad: 0.5
      diffmagLimit: 20
