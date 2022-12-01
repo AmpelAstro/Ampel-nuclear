@@ -3,7 +3,7 @@ Central repository to host AMPEL code to search for and analyze nuclear transien
 
 ## Installation
 ### Prerequisites
-You need to export environment variables for the [AMPEL ZTF archive](https://ampelproject.github.io/astronomy/ztf/index) (tokens are available [here](https://ampel.zeuthen.desy.de/live/dashboard/tokens)), for the dropbox API and for [Fritz](https://fritz.science/).
+You need to export environment variables for the [AMPEL ZTF archive](https://ampelproject.github.io/astronomy/ztf/index) (tokens are available [here](https://ampel.zeuthen.desy.de/live/dashboard/tokens)), for [Fritz](https://fritz.science/), and for the dropbox API (ask Sjoert). 
 
 Furthermore, you need a running instance of [MongoDB](https://www.mongodb.com/docs/manual/installation/).
 
@@ -24,12 +24,14 @@ Now we have to build the ampel config. Issue
 ```
 ampel config build -out ampel_conf.yaml
 ```
+Note: this will throw some import errors, but you can ignore these because those packages are not needed locally. 
+
 Now you need to export the following tokens
 ```
-export AMPEL_ARCHIVE_TOKEN, DROPBOX_TOKEN and FRITZ_TOKEN
+export AMPEL_ARCHIVE_TOKEN='' 
+export DROPBOX_TOKEN=''
+export FRITZ_TOKEN=''
 ```
-
-Note: this will throw some import errors, but you can ignore these because those packages are not needed locally. 
 
 ## Test
 To run the test, start your local MongoDB. And then issue
