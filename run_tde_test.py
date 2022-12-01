@@ -111,11 +111,11 @@ def run(
     cwd = os.getcwd()
     AMPEL_CONF = f"{cwd}/ampel_conf.yaml"
 
-    channel = "AMPEL_NUCLEAR"
+    channel = "AMPEL_NUCLEAR_TEST"
 
     ctx = DevAmpelContext.load(
         config=AMPEL_CONF,
-        db_prefix="ampel-nuclear",
+        db_prefix="ampel-nuclear-test",
         purge_db=False,
         one_db=True,
         vault=vault,
