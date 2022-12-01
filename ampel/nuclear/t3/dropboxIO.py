@@ -51,16 +51,8 @@ class DropboxUnit(AbsPhotoT3Unit):
             if not self.dryRunDir:
                 raise ValueError("You have to specify dryRunDir when using dryRun")
 
-    @property
-    def dbxtoken(self):
-        """Workaroudn to access the secret"""
-        return self.dropbox_token.get()
-
-    @cached_property
-    def dbx(self):
-        """Initiate the dropbox connection"""
         dbx = dropbox.Dropbox(
-            self.dbxtoken,
+            self.dropbox_token.get(),
             session=dropbox.create_session(max_connections=self.max_connections + 1),
         )
         try:
@@ -106,8 +98,6 @@ class DropboxUnit(AbsPhotoT3Unit):
                 "/mampel/test"
             ):  # hard coding in test dir, 'exists' function on works for files
                 self.create_folder(self.base_location)
-
-        return dbx
 
     def process(
         self, gen: Generator[TransientView, T3Send, None], t3s: Optional[T3Store] = None
