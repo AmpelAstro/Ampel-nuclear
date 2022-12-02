@@ -305,9 +305,9 @@ def run(
         directives=directives,
     )
 
-    # n = ac.run()
+    n = ac.run()
 
-    # print(f"Processed {n} alerts locally (based on query output).")
+    print(f"Processed {n} alerts locally (based on query output).")
 
     t2w = ctx.new_context_unit(
         unit="T2Worker",
@@ -315,7 +315,7 @@ def run(
         log_profile=os.environ.get("log_profile", "default"),
     )
 
-    # t2w.run()
+    t2w.run()
 
     db_config = {
         "dropbox_token": {"label": "dropbox/token"},
@@ -331,9 +331,6 @@ def run(
     t3_metrics_config = db_config.copy()
     t3_ranking_config = db_config.copy()
     t3_plotneowise_config = db_config.copy()
-
-    print(t3_ranking_config)
-    quit()
 
     t3_metrics_config.update({"verbose": True})
     t3_plotneowise_config.update(
