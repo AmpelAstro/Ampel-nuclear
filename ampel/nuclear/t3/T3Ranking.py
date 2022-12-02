@@ -136,6 +136,7 @@ class T3Ranking(DropboxUnit):
     ) -> Union[UBson, UnitResult]:
         """ """
         transients = [t for t in gen]
+
         metrics, metrics_flex = self.collect_metrics(transients)
 
         if len(metrics):

@@ -220,8 +220,8 @@ def compute(meta_data, lc, logger, verbose=False):
     isdetect = photoarr0["magpsf"] < 99  # should be everything
     idiffspos = photoarr0["isdiffpos"] == "t"
 
-    result["ndetections"] = np.int(sum(idiffspos & isdetect))
-    result["ndetections_negative"] = np.int(sum((idiffspos == False) & isdetect))
+    result["ndetections"] = int(sum(idiffspos & isdetect))
+    result["ndetections_negative"] = int(sum((idiffspos == False) & isdetect))
 
     source_age = astropy.time.Time.now().jd - max(lc["jd"])
     # logging.info('simple_metrics: {0} ({1});  age={2:4.1f}d; ra,dec = {3:0.5f} {4:0.5f}; ndetection={5}'.format(ztfname, str(meta_data['classification']), source_age, result['ra'],result['dec'], result['ndetections'] ))
@@ -334,7 +334,7 @@ def compute(meta_data, lc, logger, verbose=False):
     elif result["ndetections_g"] > 2:
         result["offset_sig"] = result["offset_sig_g"]
 
-    result["lastest_obs_is_detection"] = np.int(
+    result["lastest_obs_is_detection"] = int(
         max(photoarr0["jd"]) == result["latest_jd"]
     )
     result["latest_maglim"] = min(
