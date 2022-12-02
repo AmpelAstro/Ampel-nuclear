@@ -24,95 +24,96 @@ t0_filter:
      diffmagLimit: 20
      maxDeltaMag: 2.5
 t2_compute:
-  - unit: T2SimpleMetrics
-  - unit: T2CatalogMatch
-    config:
-      catalogs:
-        PS1:
-          rs_arcsec: 1
-          use: catsHTM
-        SDSS_spec:
-          keys_to_append:
-          - z
-          - bptclass
-          - subclass
-          rs_arcsec: 2
-          use: extcats
-          all: False
-        brescia:
-          keys_to_append: []
-          rs_arcsec: 2
-          use: extcats
-        milliquas:
-          keys_to_append:
-          - broad_type
-          - ref_name
-          rs_arcsec: 2
-          use: extcats
-        portsmouth:
-          keys_to_append:
-          - sigma_stars
-          - sigma_stars_err
-          - bpt
-          rs_arcsec: 2
-          use: extcats
-        ptfvar:
-          keys_to_append: []
-          rs_arcsec: 2
-          use: extcats
-        varstars:
-          keys_to_append: []
-          rs_arcsec: 2
-          use: extcats
-        wise_color:
-          keys_to_append:
-          - W1mW2
-          rs_arcsec: 2
-          use: extcats
-  - unit: T2FlexFit
-    config:
-      oldest_upper_limits: 14
-      max_post_peak: 200
+    - unit: T2SimpleMetrics
+    - unit: T2CatalogMatch
+      config:
+        catalogs:
+          PS1:
+            rs_arcsec: 1
+            use: catsHTM
+          SDSS_spec:
+            keys_to_append:
+            - z
+            - bptclass
+            - subclass
+            rs_arcsec: 2
+            use: extcats
+            all: False
+          brescia:
+            keys_to_append: []
+            rs_arcsec: 2
+            use: extcats
+          milliquas:
+            keys_to_append:
+            - broad_type
+            - ref_name
+            rs_arcsec: 2
+            use: extcats
+          portsmouth:
+            keys_to_append:
+            - sigma_stars
+            - sigma_stars_err
+            - bpt
+            rs_arcsec: 2
+            use: extcats
+          ptfvar:
+            keys_to_append: []
+            rs_arcsec: 2
+            use: extcats
+          varstars:
+            keys_to_append: []
+            rs_arcsec: 2
+            use: extcats
+          wise_color:
+            keys_to_append:
+            - W1mW2
+            rs_arcsec: 2
+            use: extcats
+    - unit: T2FlexFit
+      config:
+        oldest_upper_limits: 14
+        max_post_peak: 200
 
 t3_supervise:
   # Start all the T3s at the same time at 7:00 PST
-  - name: slack_supplier
-    template: ztf_periodic_summary
-    schedule: every().day.at('16:00') 
-    load:
-      - TRANSIENT
-      - T2RECORD
-      - DATAPOINT
-      - COMPOUND # needed for lightcurves
-    complement:
-      - TNSReports
-      - GROWTHMarshalReport
-      - FritzReport
-    run:
-      - unit: SlackSummaryPublisher
-        config:
-          slack_token:
-            label: slack/ztfbh
-          slack_channel: '#ampel-live'
-          full_photometry: false
+    - name: slack_supplier
+      template: ztf_periodic_summary
+      schedule: every().day.at('16:00') 
+      load:
+        - TRANSIENT
+        - T2RECORD
+        - DATAPOINT
+        - COMPOUND # needed for lightcurves
+      complement:
+        - TNSReports
+        - GROWTHMarshalReport
+        - FritzReport
+      run:
+        - unit: SlackSummaryPublisher
+          config:
+            slack_token:
+              label: slack/ztfbh
+            slack_channel: '#ampel-live'
+            full_photometry: false
 
-      - unit: T3MetricsPlots 
-        config:
-          verbose: True
-          drobox_token: 
-            label: dropbox/token
+        - unit: T3MetricsPlots 
+          config:
+            verbose: True
+            drobox_token: 
+              label: dropbox/token
      
-      - unit: T3Ranking    
-        config:
-          drobox_token:
-            label: dropbox/token
+        - unit: T3Ranking    
+          config:
+            drobox_token:
+              label: dropbox/token
+            dryRun: false
 
-      - unit: T3PlotNeoWISE # could run only once for first data point
-        config:
-          apply_qcuts: True
-          plot_allWISE: False
-          dropbox_token:
-            label: dropbox/token
+        - unit: T3PlotNeoWISE # could run only once for first data point
+          config:
+            apply_qcuts: True
+            plot_allWISE: False
+            dropbox_token:
+              label: dropbox/token
 
 
   # Fritz ingestion goes every hour
