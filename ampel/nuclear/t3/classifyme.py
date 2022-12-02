@@ -70,7 +70,7 @@ def get_class(tran_view, dropbox, logger, write=False):
         if isinstance(infile, str):
             wise_json = json.loads(infile)
         else:
-            wise_json = infile[1].json()
+            wise_json = infile.json()
         logger.info("loading wise_class for {}".format(tran_view.stock["name"][0]))
         wise_class = wise_json["wise_class"]
         wise_info = wise_json["info_list"][

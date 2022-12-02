@@ -26,9 +26,11 @@ def single_TransientView_fixture():
 
 @pytest.fixture
 def multi_TransientView_fixture():
-    with open(os.path.join(os.path.dirname(__file__), "50_test_tviews.pkl"), "rb") as f:
-        tviews = pickle.load(f)
-    return tviews
+    with open(
+        os.path.join(os.path.dirname(__file__), "transientview_list.pickle"), "rb"
+    ) as f:
+        tview_list = pickle.load(f)
+    return tview_list
 
 
 @pytest.fixture
@@ -71,47 +73,55 @@ def true_output():
     return truth
 
 
-# def test_t3_ranking(multi_TransientView_fixture, secret_provider, testdir):
+def test_t3_ranking(multi_TransientView_fixture, dropbox_token, testdir):
 
-#     from ampel.nuclear.t3.T3Ranking import T3Ranking
+    from ampel.nuclear.t3.T3Ranking import T3Ranking
 
-#     # don't run this right before midnight :)
-#     path = '{0}/ranking/{1}/{2}_everything.txt'.format(testdir['testdir'], testdir['force_year'], testdir['force_md'])
-#     print ('test_t3_ranking: creating ranking files in:\n{0}'.format(path.split('_')[0]))
+    # don't run this right before midnight :)
+    # path = "{0}/ranking/{1}/{2}_everything.txt".format(
+    #     testdir["testdir"], testdir["force_year"], testdir["force_md"]
+    # )
+    path = f"{testdir['testdir']}/ranking/{testdir['force_year']}/{testdir['force_md']}_everything.txt"
 
-#     sum_dir = '{0}/sum_plots/{1}/{2}'.format(testdir['testdir'], testdir['force_year'], testdir['force_md'])
-#     print ('test_t3_ranking: creating summary plots in:\n{0}'.format(sum_dir))
+    print("test_t3_ranking: creating ranking files in:\n{0}".format(path.split("_")[0]))
 
-#     Rank_T3 = T3Ranking(logger = logger, dryRun = False,
-#                         base_location = testdir['testdir'],
-#                         dropbox_token = secret_provider.get("dropbox/ztfbh", str))
+    sum_dir = (
+        f"{testdir['testdir']}/sum_plots/{testdir['force_year']}/{testdir['force_md']}"
+    )
 
-#     # test running with no input
-#     Rank_T3.add(multi_TransientView_fixture[0:0])
+    print("test_t3_ranking: creating summary plots in:\n{0}".format(sum_dir))
 
-#     # test running 5 transients
-#     # Rank_T3.add(multi_TransientView_fixture[0:5])
+    Rank_T3 = T3Ranking(
+        logger=logger,
+        dryRun=False,
+        base_location=testdir["testdir"],
+        dropbox_token=dropbox_token,
+    )
+    Rank_T3.post_init()
 
-#     # #test running in chunks
-#     for i in range(0,len(multi_TransientView_fixture),10):
-#         Rank_T3.add(multi_TransientView_fixture[i:i+10])
-#     Rank_T3.add(multi_TransientView_fixture[i+10:])
+    # test running with no input
+    Rank_T3.process([])
 
-#     Rank_T3.done()
+    # need to init again
+    Rank_T3.post_init()
 
-#     # check that ranking and summary plot files are created
-#     print (Rank_T3.stats['files'])
-#     assert Rank_T3.stats['files'] > 6 # check all of the files were created
+    # test running all transients
+    Rank_T3.process(multi_TransientView_fixture)
 
+    # check that ranking and summary plot files are created
+    print(Rank_T3.stats["files"])
+    assert Rank_T3.stats["files"] > 6  # check all of the files were created
 
-#     # check for ranking
-#     nlines = Rank_T3.read_file(path)[1].text.count('ZTF')
-#     assert nlines > 45 # check number of lines in ranking, at least 46 lines long
+    # check for ranking
+    nlines = Rank_T3.read_file(path).text.count("ZTF")
+    print(Rank_T3.read_file(path).text)
+    print(nlines)
+    assert nlines > 45  # check number of lines in ranking, at least 46 lines long
 
-#     # check for summary
-#     assert Rank_T3.exists(sum_dir+'/rise_color.pdf')
-#     assert Rank_T3.exists(sum_dir+'/rise_fade.pdf')
-#     assert Rank_T3.exists(sum_dir+'/color_change.pdf')
+    # check for summary
+    assert Rank_T3.exists(sum_dir + "/rise_color.pdf")
+    assert Rank_T3.exists(sum_dir + "/rise_fade.pdf")
+    assert Rank_T3.exists(sum_dir + "/color_change.pdf")
 
 
 def test_t3_metricsplots(single_TransientView_fixture, dropbox_token, testdir):
@@ -128,9 +138,8 @@ def test_t3_metricsplots(single_TransientView_fixture, dropbox_token, testdir):
     )
     Metrics_T3.post_init()
 
-    path = "{0}/alerts/2020/ZTF20aaaaflr/ZTF20aaaaflr_flex.json".format(
-        testdir["testdir"]
-    )
+    path = f"{testdir['testdir']}/alerts/2020/ZTF20aaaaflr/ZTF20aaaaflr_flex.json"
+
     print("test_t3_metricsplots: creating single flexfit output at\n{0}".format(path))
 
     Metrics_T3.process([single_TransientView_fixture])
@@ -156,10 +165,10 @@ def test_t3_plot_neowise(single_TransientView_fixture, dropbox_token, testdir):
     )
     WISE_T3.post_init()
 
-    path = "{0}/alerts/2020/ZTF20aaaaflr/ZTF20aaaaflr_neoWISE.json".format(
-        testdir["testdir"]
-    )
+    path = f"{testdir['testdir']}/alerts/2020/ZTF20aaaaflr/ZTF20aaaaflr_neoWISE.json"
+
     print("test_t3_plot_neowise: creating new neoWISE output in:\n{0}".format(path))
+
     WISE_T3.process([single_TransientView_fixture])
 
     wise_dump = WISE_T3.read_file(path)[1].json()

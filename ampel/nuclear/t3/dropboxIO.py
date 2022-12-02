@@ -260,7 +260,8 @@ class DropboxUnit(AbsPhotoT3Unit):
                 )
 
         try:
-            return self.dbx.files_download(path)
+            metadata, f = self.dbx.files_download(path)
+            return f
         except dropbox.exceptions.ApiError as exc:
             if (
                 isinstance(exc.error, dropbox.files.DownloadError)

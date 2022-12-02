@@ -217,6 +217,7 @@ class T3Ranking(DropboxUnit):
         return metrics, metrics_flex
 
     def get_fit_params(self, tran_view, classification):
+        """ """
         try:
             fit_params = dict(
                 (tran_view.get_latest_t2_body("T2FlexFit") or {})["fit_params"]
@@ -236,10 +237,7 @@ class T3Ranking(DropboxUnit):
             return emptyrow
 
     def get_simple_results(self, tran_view, classification, extra_info):
-        # try:
-        # simple_results = dict(
-        #     (tran_view.get_t2_result("T2SimpleMetrics") or {}).get("metrics", {})
-        # )
+        """ """
         simple_results = dict(
             tran_view.get_latest_t2_body("T2SimpleMetrics" or {}).get("metrics", {})
         )
@@ -268,7 +266,7 @@ class T3Ranking(DropboxUnit):
             if isinstance(results_infile, str):
                 results_json = json.loads(results_infile)
             else:
-                results_json = results_infile[0].json()
+                results_json = results_infile.json()
 
             simple_results["offset_med_ps1"] = results_json["offset_med_ps1"]
             simple_results["offset_rms_ps1"] = results_json["offset_rms_ps1"]
@@ -376,7 +374,7 @@ class T3Ranking(DropboxUnit):
 
         # everything (including bad fit etc)
         iselect = iage
-        self.logger.info("# sources in everyting list: " + str(sum(iselect)))
+        self.logger.info("# sources in everything list: " + str(sum(iselect)))
         filename = base_name + "_everything.txt"
 
         self.print_ranking(filename, metrics[iselect], metrics_flex[iselect])
@@ -672,13 +670,13 @@ class T3Ranking(DropboxUnit):
             self.plt2box(plt, plot_fname)
 
         reference_agn = pd.read_csv(
-            io.BytesIO(self.read_file("/mampel/misc/AGN.csv")[1].content)
+            io.BytesIO(self.read_file("/mampel/misc/AGN.csv").content)
         )
         reference_sne = pd.read_csv(
-            io.BytesIO(self.read_file("/mampel/misc/SN_all.csv")[1].content)
+            io.BytesIO(self.read_file("/mampel/misc/SN_all.csv").content)
         )
         reference_tde = pd.read_csv(
-            io.BytesIO(self.read_file("/mampel/misc/TDE.csv")[1].content)
+            io.BytesIO(self.read_file("/mampel/misc/TDE.csv").content)
         )
         plt.clf()
         for idx, labl, alph, fmt in zip(*plot_tuple):
