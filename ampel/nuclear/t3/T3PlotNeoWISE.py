@@ -145,8 +145,14 @@ class T3PlotNeoWISE(DropboxUnit):
 
             entries = {}  # track entries to know which folder to create
             years = self.get_files(self.save_location)
-            if "neowise_log.json" in years:
-                years.remove("neowise_log.json")
+
+            # if "neowise_log.json" in years:
+            #     years.remove("neowise_log.json")
+
+            for entry in years:
+                if entry in ["neowise_log.json", ".DS_Store"]:
+                    years.remove(entry)
+
             for year in years:
                 try:
                     entries[year] = self.get_files(

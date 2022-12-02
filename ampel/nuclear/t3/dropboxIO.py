@@ -221,6 +221,7 @@ class DropboxUnit(AbsPhotoT3Unit):
             ):
                 raise NotADirectoryError(f"{path} is not a directory") from exc
             else:
+                print(path)
                 raise
 
         entries += [entry.name for entry in list_folder.entries]
