@@ -103,6 +103,7 @@ requests = ">=2.26.0,<3.0.0"
 scipy = ">=1.4,<2.0"
 seaborn = ">=0.11.2,<0.12.0"
 sfdmap = {version = ">=0.1.1,<0.2.0", optional = true, markers = "extra == \"sncosmo\""}
+slack-sdk = {version = ">=3,<4", optional = true, markers = "extra == \"slack\""}
 sncosmo = {version = ">=2.5.0,<3.0.0", optional = true, markers = "extra == \"sncosmo\""}
 
 [package.extras]
@@ -935,6 +936,18 @@ python-versions = "*"
 pycryptodome = "*"
 
 [[package]]
+name = "slack-sdk"
+version = "3.19.5"
+description = "The Slack API Platform SDK for Python"
+category = "main"
+optional = false
+python-versions = ">=3.6.0"
+
+[package.extras]
+optional = ["SQLAlchemy (>=1,<2)", "aiodns (>1.0)", "aiohttp (>=3.7.3,<4)", "boto3 (<=2)", "websocket-client (>=1,<2)", "websockets (>=10,<11)"]
+testing = ["Flask (>=1,<2)", "Flask-Sockets (>=0.2,<1)", "Jinja2 (==3.0.3)", "Werkzeug (<2)", "black (==22.8.0)", "boto3 (<=2)", "click (==8.0.4)", "codecov (>=2,<3)", "databases (>=0.5)", "flake8 (>=5,<6)", "itsdangerous (==1.1.0)", "moto (>=3,<4)", "psutil (>=5,<6)", "pytest (>=6.2.5,<7)", "pytest-asyncio (<1)", "pytest-cov (>=2,<3)"]
+
+[[package]]
 name = "sncosmo"
 version = "2.9.0"
 description = "Package for supernova cosmology based on astropy"
@@ -1096,7 +1109,7 @@ tests = ["coverage", "flake8", "wheel"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "d8107d994bd4ea7cf60b4fdaac3b4b879291e12f83fbeabaf544d9f031bda500"
+content-hash = "239a9923c66d912ce33ad0942c40d3a6923207a9990f9202183bd8ff0b040b80"
 
 [metadata.files]
 adjusttext = [
@@ -2292,6 +2305,10 @@ six = [
 ]
 sjcl = [
     {file = "sjcl-0.2.1.tar.gz", hash = "sha256:3761ba01f9f049eaa2f67516054b7bfb2e27fe8bc7c9c630da7168fba58f0c57"},
+]
+slack-sdk = [
+    {file = "slack_sdk-3.19.5-py2.py3-none-any.whl", hash = "sha256:0b52bb32a87c71f638b9eb47e228dffeebf89de5e762684ef848276f9f186c84"},
+    {file = "slack_sdk-3.19.5.tar.gz", hash = "sha256:47fb4af596243fe6585a92f3034de21eb2104a55cc9fd59a92ef3af17cf9ddd8"},
 ]
 sncosmo = [
     {file = "sncosmo-2.9.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:57aba69f6548199bd5e60bd142cb0d1531fa7ed89760635706568b0b2911c278"},
