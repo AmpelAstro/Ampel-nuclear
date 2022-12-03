@@ -117,7 +117,7 @@ class T3Ranking(DropboxUnit):
             self.create_folder(self.sum_location)
 
         # if needed, add the year subfolder (always needed when we are running pytest)
-        self.this_year = str(self.today.datetime.year)
+        self.this_year = str(self.night.datetime.year)
         if self.this_year not in self.get_files(self.ranking_location):
             self.create_folder(self.ranking_location + "/" + self.this_year)
 
@@ -126,7 +126,7 @@ class T3Ranking(DropboxUnit):
             self.create_folder(sum_location_year)
 
         # finally, add the dd-mm subfolder for sum_plot
-        self.this_mmdd = self.today.datetime.strftime("%m-%d")
+        self.this_mmdd = self.night.datetime.strftime("%m-%d")
         self.plot_dir = sum_location_year + "/" + self.this_mmdd
         if self.this_mmdd not in self.get_files(sum_location_year):
             self.create_folder(self.plot_dir)
@@ -160,7 +160,6 @@ class T3Ranking(DropboxUnit):
 
     def collect_metrics(self, transients):
         """ """
-        jd_today = self.today.jd
 
         if transients:
 
@@ -248,7 +247,7 @@ class T3Ranking(DropboxUnit):
         simple_results["classification"] = classification
         simple_results["extra_info"] = extra_info
         simple_results["age"] = (
-            self.today.jd
+            self.night.jd
             - astropy.time.Time(tran_view.get_time_updated(output="datetime")).jd
         )
 
@@ -298,6 +297,7 @@ class T3Ranking(DropboxUnit):
             metrics.to_csv(os.path.join(self.dryRunDir, "metrics.csv"))
             metrics_flex.to_csv(os.path.join(self.dryRunDir, "metrics_flex.csv"))
 
+        # Fix here!
         base_name = (
             self.ranking_location + "/" + self.this_year + "/" + self.this_mmdd
         )  # base of filename
