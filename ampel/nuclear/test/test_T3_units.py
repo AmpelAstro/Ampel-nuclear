@@ -144,7 +144,7 @@ def test_t3_metricsplots(single_TransientView_fixture, dropbox_token, testdir):
 
     Metrics_T3.process([single_TransientView_fixture])
 
-    metrics_dump = Metrics_T3.read_file(path)[1].json()
+    metrics_dump = Metrics_T3.read_file(path).json()
     assert metrics_dump["name"] == "ZTF20aaaaflr"
     assert Metrics_T3.stats["files"] == 5  # ensure we save every file properly
 
@@ -171,6 +171,6 @@ def test_t3_plot_neowise(single_TransientView_fixture, dropbox_token, testdir):
 
     WISE_T3.process([single_TransientView_fixture])
 
-    wise_dump = WISE_T3.read_file(path)[1].json()
+    wise_dump = WISE_T3.read_file(path).json()
     assert WISE_T3.stats["files"] >= 3
     assert list(wise_dump.keys()) == ["info_list", "wise_class", "out_dict"]
