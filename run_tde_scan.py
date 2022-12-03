@@ -48,6 +48,7 @@ def run(
         date_format = "%Y-%m-%d"
         req_date = str(datetime.datetime.strptime(date, date_format))
         startdate_jd = Time(req_date, format="iso", scale="utc").jd
+        # Fixme
         delta_t = 1
         enddate_jd = startdate_jd + delta_t
 
@@ -325,6 +326,7 @@ def run(
             {
                 "dryRun": True,
                 "dryRunDir": temp_dir_base,
+                "date": date if date else None
             }
         )
 
@@ -428,7 +430,7 @@ if __name__ == "__main__":
         "--daysago",
         type=int,
         default=None,
-        help="Starting from today, get the last n days",
+        help="Starting from night, get the last n days",
     )
 
     parser.add_argument(
