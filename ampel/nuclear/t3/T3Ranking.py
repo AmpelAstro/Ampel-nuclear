@@ -297,7 +297,6 @@ class T3Ranking(DropboxUnit):
             metrics.to_csv(os.path.join(self.dryRunDir, "metrics.csv"))
             metrics_flex.to_csv(os.path.join(self.dryRunDir, "metrics_flex.csv"))
 
-        # Fix here!
         base_name = (
             self.ranking_location + "/" + self.this_year + "/" + self.this_mmdd
         )  # base of filename

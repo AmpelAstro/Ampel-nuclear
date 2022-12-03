@@ -48,7 +48,6 @@ def run(
         date_format = "%Y-%m-%d"
         req_date = str(datetime.datetime.strptime(date, date_format))
         startdate_jd = Time(req_date, format="iso", scale="utc").jd
-        # Fixme
         delta_t = 1
         enddate_jd = startdate_jd + delta_t
 
