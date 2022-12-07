@@ -246,6 +246,11 @@ class T3Ranking(DropboxUnit):
 
         simple_results["classification"] = classification
         simple_results["extra_info"] = extra_info
+
+        # get all the jds for the lightcurve photopoints -> might provide useful
+        # lc_photopoints = tran_view.get_lightcurves()[0].get_photopoints()
+        # lc_jds = [p.get("body").get("jd") for p in lc_pps]
+
         simple_results["age"] = (
             self.night.jd
             - astropy.time.Time(tran_view.get_time_updated(output="datetime")).jd
