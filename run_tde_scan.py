@@ -247,7 +247,7 @@ def run(
             "ingest": {
                 "mux": {
                     "unit": "ZiArchiveMuxer",
-                    "config": {"history_days": 999, "future_days": 999},
+                    "config": {"history_days": 999, "future_days": 0},
                     "combine": [
                         {
                             "unit": "ZiT1Combiner",
