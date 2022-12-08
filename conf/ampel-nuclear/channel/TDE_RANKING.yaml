@@ -24,71 +24,73 @@ t0_filter:
      diffmagLimit: 20
      maxDeltaMag: 2.5
 t2_compute:
-    - unit: T2SimpleMetrics
-    - unit: T2CatalogMatch
-      config:
-        catalogs:
-          PS1:
-            rs_arcsec: 1
-            use: catsHTM
-          SDSS_spec:
-            keys_to_append:
-            - z
-            - bptclass
-            - subclass
-            rs_arcsec: 2
-            use: extcats
-            all: False
-          brescia:
-            keys_to_append: []
-            rs_arcsec: 2
-            use: extcats
-          milliquas:
-            keys_to_append:
-            - broad_type
-            - ref_name
-            rs_arcsec: 2
-            use: extcats
-          portsmouth:
-            keys_to_append:
-            - sigma_stars
-            - sigma_stars_err
-            - bpt
-            rs_arcsec: 2
-            use: extcats
-          ptfvar:
-            keys_to_append: []
-            rs_arcsec: 2
-            use: extcats
-          varstars:
-            keys_to_append: []
-            rs_arcsec: 2
-            use: extcats
-          wise_color:
-            keys_to_append:
-            - W1mW2
-            rs_arcsec: 2
-            use: extcats
-    - unit: T2FlexFit
-      config:
-        oldest_upper_limits: 14
-        max_post_peak: 200
+  - unit: T2SimpleMetrics
+  - unit: T2CatalogMatch
+    config:
+      catalogs:
+        PS1:
+          rs_arcsec: 1
+          use: catsHTM
+        SDSS_spec:
+          keys_to_append:
+          - z
+          - bptclass
+          - subclass
+          rs_arcsec: 2
+          use: extcats
+          all: False
+        brescia:
+          keys_to_append: []
+          rs_arcsec: 2
+          use: extcats
+        milliquas:
+          keys_to_append:
+          - broad_type
+          - ref_name
+          rs_arcsec: 2
+          use: extcats
+        portsmouth:
+          keys_to_append:
+          - sigma_stars
+          - sigma_stars_err
+          - bpt
+          rs_arcsec: 2
+          use: extcats
+        ptfvar:
+          keys_to_append: []
+          rs_arcsec: 2
+          use: extcats
+        varstars:
+          keys_to_append: []
+          rs_arcsec: 2
+          use: extcats
+        wise_color:
+          keys_to_append:
+          - W1mW2
+          rs_arcsec: 2
+          use: extcats
+  - unit: T2FlexFit
+    config:
+      oldest_upper_limits: 14
+      max_post_peak: 200
 
 t3_supervise:
   # Start all the T3s at the same time at 7:00 PST
-    # - name: slack_supplier
-    - template: ztf_periodic_summary
-      schedule: every().day.at('16:00') 
-      load:
-        - TRANSIENT
-        - T2RECORD
-        - DATAPOINT
-        - COMPOUND # needed for lightcurves
-      complement:
-        - TNSReports
-        - GROWTHMarshalReport
-        - FritzReport
-          # config: 
+  - name: slack_supplier
+    template: ztf_periodic_summary
+    schedule: every().day.at('16:00') 
+    load:
+      - TRANSIENT
+      - T2RECORD
+      - DATAPOINT
+      - COMPOUND # needed for lightcurves
+    complement:
+      - TNSReports
+      - GROWTHMarshalReport
+      - FritzReport:
+          config: 
+            token:
+              key: fritz/token
       run:
         - unit: SlackSummaryPublisher
           config:
@@ -116,17 +118,18 @@ t3_supervise:
               label: dropbox/token
 
 
-    # Fritz ingestion goes every hour
-    # to do: also add auto classifications/annotations to this
-    - template: ztf_periodic_summary
-      schedule: every().hour
-      load:
-        - TRANSIENT
-        - DATAPOINT
-      run:
-        - unit: SkyPortalPublisher
-          config:
-            token:
-              key: fritz/jvs/ampelbot
-            base_url: https://fritz.science
-            groups: ['Nuclear Transients']
+  # Fritz ingestion goes every hour
+  # to do: also add auto classifications/annotations to this
+  - name: skyportal_supplier
+    template: ztf_periodic_summary
+    schedule: every().hour
+    load:
+      - TRANSIENT
+      - DATAPOINT
+    run:
+      - unit: SkyPortalPublisher
+        config:
+          token:
+            key: fritz/jvs/ampelbot
+          base_url: https://fritz.science
+          groups: ['Nuclear Transients']
