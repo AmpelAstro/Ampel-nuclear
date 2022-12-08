@@ -1,5 +1,5 @@
 channel: TDE_RANKING
-contact: sjoert@strw.leidenuniv.nl
+contact: simeon.reusch@desy.de
 active: true
 members:
   - sjoertvv
@@ -76,8 +76,8 @@ t2_compute:
 
 t3_supervise:
   # Start all the T3s at the same time at 7:00 PST
-    - name: slack_supplier
-      template: ztf_periodic_summary
+    # - name: slack_supplier
+    - template: ztf_periodic_summary
       schedule: every().day.at('16:00') 
       load:
         - TRANSIENT
@@ -88,6 +88,7 @@ t3_supervise:
         - TNSReports
         - GROWTHMarshalReport
         - FritzReport
+          # config: 
       run:
         - unit: SlackSummaryPublisher
           config:
@@ -106,7 +107,6 @@ t3_supervise:
           config:
             drobox_token:
               label: dropbox/token
-            dryRun: false
 
         - unit: T3PlotNeoWISE # could run only once for first data point
           config:
@@ -116,17 +116,17 @@ t3_supervise:
               label: dropbox/token
 
 
-  # Fritz ingestion goes every hour
-  # to do: also add auto classifications/annotations to this
-  - template: ztf_periodic_summary
-    schedule: every().hour
-    load:
-      - TRANSIENT
-      - DATAPOINT
-    run:
-      - unit: SkyPortalPublisher
-        config:
-          token:
-            key: fritz/jvs/ampelbot
-          base_url: https://fritz.science
-          groups: ['Nuclear Transients']
+    # Fritz ingestion goes every hour
+    # to do: also add auto classifications/annotations to this
+    - template: ztf_periodic_summary
+      schedule: every().hour
+      load:
+        - TRANSIENT
+        - DATAPOINT
+      run:
+        - unit: SkyPortalPublisher
+          config:
+            token:
+              key: fritz/jvs/ampelbot
+            base_url: https://fritz.science
+            groups: ['Nuclear Transients']

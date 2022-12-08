@@ -311,7 +311,8 @@ class T3Ranking(DropboxUnit):
             for c in metrics["classification"]
         ]
 
-        iage = metrics["age"] > 0
+        # disable for now
+        iage = metrics["age"] > -9999
 
         # Select things saved for as part of Ampel filter
         # iampel = ['ZTFBH Nuclear' in [x['comment'] for x in aa] for aa in [ls['autoannotations'] for ls in marshal_data['metadata']]]
