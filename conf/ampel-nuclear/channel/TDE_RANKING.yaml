@@ -4,6 +4,7 @@ active: true
 members:
   - sjoertvv
   - mitchellkarmen
+  - simeonreusch
 # Auto-complete mode: how to treat photopoints be treated once a transient has
 # been accepted.
 # - false: apply filter to all photopoints
@@ -87,10 +88,8 @@ t3_supervise:
     complement:
       - TNSReports
       - GROWTHMarshalReport
-      - FritzReport:
-          config: 
-            token:
-              key: fritz/token
+      - FritzReport
+
       run:
         - unit: SlackSummaryPublisher
           config:
