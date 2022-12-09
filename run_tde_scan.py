@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import requests, os, argparse, time, datetime
-from typing import Optional
-from astropy.time import Time
-import matplotlib
+from typing import Optional, Union, Any
+from astropy.time import Time  # type: ignore
+import matplotlib  # type: ignore
 
 from ampel.log.AmpelLogger import AmpelLogger
 from ampel.nuclear.t0.NuclearFilter import NuclearFilter
@@ -24,7 +24,7 @@ temp_dir_base = os.path.join(os.getcwd(), "temp")
 
 def run(
     initiate: bool = False,
-    date: Optional[str] = False,
+    date: Optional[str] = None,
     daysago: Optional[int] = None,
     push_to_dropbox: bool = False,
 ):
@@ -317,16 +317,12 @@ def run(
 
     t2w.run()
 
-    db_config = {
+    db_config: dict[str, Any] = {
         "dropbox_token": {"label": "dropbox/token"},
     }
     if not push_to_dropbox:
         db_config.update(
-            {
-                "dryRun": True,
-                "dryRunDir": temp_dir_base,
-                "date": date if date else None
-            }
+            {"dryRun": True, "dryRunDir": temp_dir_base, "date": date if date else None}
         )
 
     t3_metrics_config = db_config.copy()

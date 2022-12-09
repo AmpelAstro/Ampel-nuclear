@@ -12,12 +12,12 @@ import datetime, json, io, time, os
 from typing import Any, Optional, Union
 from collections.abc import Generator
 
-import matplotlib as mpl
-from matplotlib import pyplot as plt
+import matplotlib as mpl  # type: ignore
+from matplotlib import pyplot as plt  # type: ignore
 import numpy as np
-import pandas as pd
-import astropy.time
-import corner
+import pandas as pd  # type: ignore
+import astropy.time  # type: ignore
+import corner  # type: ignore
 
 from ampel.types import UBson, T3Send
 from ampel.view.TransientView import TransientView
@@ -157,6 +157,8 @@ class T3Ranking(DropboxUnit):
             self.apply_ranking(self.metrics, self.metrics_flex)
 
         super().done()
+
+        return None
 
     def collect_metrics(self, transients):
         """ """

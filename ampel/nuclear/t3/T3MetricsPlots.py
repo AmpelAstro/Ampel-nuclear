@@ -14,8 +14,8 @@ from collections.abc import Generator
 
 import numpy as np
 from pydantic import BaseModel
-import astropy
-import matplotlib.pyplot as plt
+import astropy  # type: ignore
+import matplotlib.pyplot as plt  # type: ignore
 import tempfile
 
 from ampel.types import UBson, T3Send
@@ -51,7 +51,7 @@ dump_keys = [
 
 def get_t2_result_with_compound(
     view: TransientView, unit_id: str
-) -> Tuple[Optional[Dict[str, Any]], Optional[int]]:
+) -> Tuple[Optional[Dict[str, Any]], Optional[Union[int, bytes, str]]]:
 
     t2_res = reversed(list(view.get_t2_views(unit=unit_id) or []))
 
@@ -238,6 +238,7 @@ class T3MetricsPlots(DropboxUnit):
                         )
 
         self.commit()
+        return None
 
     def get_ps1(self, simple, ps1_match, filepath):
         metrics, plot_info = simple["metrics"], simple["plot_info"]

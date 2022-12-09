@@ -7,7 +7,7 @@
 # Last Modified Date: 29.11.2022
 # Last Modified By  : simeon.reusch@desy.de
 
-import dropbox
+import dropbox  # type: ignore
 import os
 import tempfile
 from typing import Optional, Union
@@ -16,8 +16,8 @@ from functools import lru_cache
 import datetime
 from concurrent.futures import ThreadPoolExecutor
 
-import astropy
-import astropy.time
+import astropy  # type: ignore
+import astropy.time  # type: ignore
 from astropy import units as u
 import backoff
 from requests.exceptions import ConnectionError
@@ -44,7 +44,7 @@ class DropboxUnit(AbsPhotoT3Unit):
     logger: AmpelLogger
     base_location: str = "/mampel"  #:optional diff. directory for testing
     max_connections: int = 20
-    date: str = None
+    date: Optional[str] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -92,7 +92,10 @@ class DropboxUnit(AbsPhotoT3Unit):
             if self.date is not None:
                 date_format = "%Y-%m-%d"
                 req_date = str(datetime.datetime.strptime(self.date, date_format))
-                self.night = astropy.time.Time(req_date, format="iso", scale="utc") + 0.99 * u.day
+                self.night = (
+                    astropy.time.Time(req_date, format="iso", scale="utc")
+                    + 0.99 * u.day
+                )
             else:
                 self.night = astropy.time.Time.now()
         else:
@@ -111,7 +114,7 @@ class DropboxUnit(AbsPhotoT3Unit):
     ) -> Union[UBson, UnitResult]:
         """ """
         # DUMMY FUNCTION
-        a = 1
+        return None
 
     def done(self):
         self.commit()
@@ -144,6 +147,8 @@ class DropboxUnit(AbsPhotoT3Unit):
 
     @handle_disconnects
     def put(self, path, payload):
+        print("PUT")
+        print("------")
         if self.dryRun:
             if path.startswith("/"):
                 path = path[1:]
@@ -164,6 +169,8 @@ class DropboxUnit(AbsPhotoT3Unit):
         self.stats["files"] += 1
 
     def commit(self) -> None:
+        print("COMMIT")
+        print("------")
         entries = []
         for future, (path, offset) in self._uploads.items():
             start_result = future.result()
