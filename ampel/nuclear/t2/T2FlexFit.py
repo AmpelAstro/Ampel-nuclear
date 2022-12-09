@@ -38,7 +38,7 @@ class T2FlexFit(AbsLightCurveT2Unit):
     oldest_upper_limits: int
     max_post_peak: int
 
-    def process(self, light_curve: LightCurve) -> UBson | UnitResult:
+    def process(self, light_curve) -> UBson | UnitResult:
         """
         Parameters
         ----------

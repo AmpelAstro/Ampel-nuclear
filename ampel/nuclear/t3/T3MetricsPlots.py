@@ -65,7 +65,9 @@ def get_t2_result_with_compound(
     return None, None
 
 
-def get_lightcurve(view: TransientView, compound_id: bytes) -> Optional[LightCurve]:
+def get_lightcurve(
+    view: TransientView, compound_id: Union[int, bytes, str]
+) -> Optional[LightCurve]:
     for lc in reversed(view.get_lightcurves() or []):
         if lc.compound_id == compound_id:
             return lc

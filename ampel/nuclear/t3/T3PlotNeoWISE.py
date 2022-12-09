@@ -11,8 +11,8 @@ import io, json, warnings
 from collections.abc import Generator
 from typing import Any, Optional, Union
 
-import astropy.io.ascii
-import matplotlib.pyplot as plt
+import astropy.io.ascii  # type: ignore
+import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
 from pydantic import BaseModel
 import requests
@@ -170,7 +170,7 @@ class T3PlotNeoWISE(DropboxUnit):
                     "ra"
                 ), tran_view.get_lightcurves()[-1].get_values("dec")
                 filebase = self.save_location + f"/{tran_year}/{tran_name}/{tran_name}"
-                out_dict = {}
+                out_dict: dict = {}
 
                 needs_plot = not self.exists(
                     f"{self.save_location}/{tran_year}/{tran_name}/{filebase}-neowise.pdf"
@@ -221,7 +221,7 @@ class T3PlotNeoWISE(DropboxUnit):
                         )
                         self.logger.warn(e)
                         data_log[tran_name] = False
-                        info_list, wise_class, out_dict = [], None, None  # unneccesary?
+                        info_list, wise_class, out_dict = [], None, None
                         continue
 
                     astro_tab = astropy.io.ascii.read(table.text)
@@ -584,6 +584,7 @@ class T3PlotNeoWISE(DropboxUnit):
         self.put(self.save_location + "/neowise_log.json", buf.read())
 
         self.commit()
+        return None
 
     def binthem(
         self,

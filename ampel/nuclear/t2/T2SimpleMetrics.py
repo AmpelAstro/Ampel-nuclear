@@ -10,10 +10,10 @@
 import numpy as np
 import os, sys
 import numpy as np
-from astropy import units as u
-from astropy.coordinates import SkyCoord
-import astropy.time
-import pandas as pd
+from astropy import units as u  # type: ignore
+from astropy.coordinates import SkyCoord  # type: ignore
+import astropy.time  # type: ignore
+import pandas as pd  # type: ignore
 
 from ampel.types import UBson
 from ampel.struct.UnitResult import UnitResult
@@ -27,7 +27,7 @@ class T2SimpleMetrics(AbsLightCurveT2Unit):
     Computes simple lightcurve metrics
     """
 
-    def process(self, light_curve: LightCurve) -> UBson | UnitResult:
+    def process(self, light_curve) -> UBson | UnitResult:
         """
         Parameters
         ----------
