@@ -10,13 +10,15 @@
 import dropbox
 import os
 import tempfile
-from typing import Any, Optional, Union
+from typing import Optional, Union
 from collections.abc import Generator
 from functools import lru_cache
+import datetime
 from concurrent.futures import ThreadPoolExecutor
-from functools import cached_property
 
-import astropy, astropy.time
+import astropy
+import astropy.time
+from astropy import units as u
 import backoff
 from requests.exceptions import ConnectionError
 
@@ -25,7 +27,6 @@ from ampel.view.TransientView import TransientView
 from ampel.view.T3Store import T3Store
 from ampel.struct.UnitResult import UnitResult
 from ampel.abstract.AbsPhotoT3Unit import AbsPhotoT3Unit
-from ampel.base.AmpelBaseModel import AmpelBaseModel
 from ampel.secret.NamedSecret import NamedSecret
 
 from ampel.log.AmpelLogger import AmpelLogger
@@ -43,6 +44,7 @@ class DropboxUnit(AbsPhotoT3Unit):
     logger: AmpelLogger
     base_location: str = "/mampel"  #:optional diff. directory for testing
     max_connections: int = 20
+    date: str = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -87,9 +89,14 @@ class DropboxUnit(AbsPhotoT3Unit):
         self._uploads = {}
 
         if self.base_location == "/mampel":
-            self.today = astropy.time.Time.now()
+            if self.date is not None:
+                date_format = "%Y-%m-%d"
+                req_date = str(datetime.datetime.strptime(self.date, date_format))
+                self.night = astropy.time.Time(req_date, format="iso", scale="utc") + 0.99 * u.day
+            else:
+                self.night = astropy.time.Time.now()
         else:
-            self.today = astropy.time.Time(
+            self.night = astropy.time.Time(
                 self.base_location[13:23]
             )  # shouldn't change from test to test
             if self.dryRun:

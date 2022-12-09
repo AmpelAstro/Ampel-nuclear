@@ -325,6 +325,7 @@ def run(
             {
                 "dryRun": True,
                 "dryRunDir": temp_dir_base,
+                "date": date if date else None
             }
         )
 
@@ -428,7 +429,7 @@ if __name__ == "__main__":
         "--daysago",
         type=int,
         default=None,
-        help="Starting from today, get the last n days",
+        help="Starting from night, get the last n days",
     )
 
     parser.add_argument(

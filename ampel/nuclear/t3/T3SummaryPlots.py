@@ -138,12 +138,12 @@ class T3SummaryPlots(DropboxUnit, AbsPhotoT3Unit):
         days_back=60, days since the last detection  to be included in the plot
         """
 
-        drop_dir = self.save_location + "/" + str(self.today.datetime.year)
-        if str(self.today.datetime.year) not in self.get_files(self.save_location):
+        drop_dir = self.save_location + "/" + str(self.night.datetime.year)
+        if str(self.night.datetime.year) not in self.get_files(self.save_location):
             self.create_folder(drop_dir)
 
-        plot_dir = drop_dir + "/" + self.today.datetime.strftime("%m-%d")
-        if self.today.datetime.strftime("%m-%d") not in self.get_files(drop_dir):
+        plot_dir = drop_dir + "/" + self.night.datetime.strftime("%m-%d")
+        if self.night.datetime.strftime("%m-%d") not in self.get_files(drop_dir):
             self.create_folder(plot_dir)
 
         metrics, metrics_flex = self.collect_metrics(transients)
@@ -163,7 +163,7 @@ class T3SummaryPlots(DropboxUnit, AbsPhotoT3Unit):
 
         mjdmay = self.datetomjd(datetime.datetime(2018, 5, 1))
         mjdnov = self.datetomjd(datetime.datetime(2018, 10, 1))
-        jdnow = self.datetomjd(self.today.datetime) + 2400000.5
+        jdnow = self.datetomjd(self.night.datetime) + 2400000.5
         mjdmax = np.nanmax(metrics_flex["mjd_peak"])
 
         self.logger.info(
@@ -746,7 +746,7 @@ class T3SummaryPlots(DropboxUnit, AbsPhotoT3Unit):
 
     def collect_metrics(self, transients):
         """ """
-        jd_today = self.today.jd
+        jd_today = self.night.jd
 
         alert_name = "/mampel/alerts"
         alert_folders = self.get_files(alert_name)

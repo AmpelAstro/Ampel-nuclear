@@ -117,7 +117,7 @@ class T3Ranking(DropboxUnit):
             self.create_folder(self.sum_location)
 
         # if needed, add the year subfolder (always needed when we are running pytest)
-        self.this_year = str(self.today.datetime.year)
+        self.this_year = str(self.night.datetime.year)
         if self.this_year not in self.get_files(self.ranking_location):
             self.create_folder(self.ranking_location + "/" + self.this_year)
 
@@ -126,7 +126,7 @@ class T3Ranking(DropboxUnit):
             self.create_folder(sum_location_year)
 
         # finally, add the dd-mm subfolder for sum_plot
-        self.this_mmdd = self.today.datetime.strftime("%m-%d")
+        self.this_mmdd = self.night.datetime.strftime("%m-%d")
         self.plot_dir = sum_location_year + "/" + self.this_mmdd
         if self.this_mmdd not in self.get_files(sum_location_year):
             self.create_folder(self.plot_dir)
@@ -160,7 +160,6 @@ class T3Ranking(DropboxUnit):
 
     def collect_metrics(self, transients):
         """ """
-        jd_today = self.today.jd
 
         if transients:
 
@@ -247,8 +246,13 @@ class T3Ranking(DropboxUnit):
 
         simple_results["classification"] = classification
         simple_results["extra_info"] = extra_info
+
+        # get all the jds for the lightcurve photopoints -> might provide useful
+        # lc_photopoints = tran_view.get_lightcurves()[0].get_photopoints()
+        # lc_jds = [p.get("body").get("jd") for p in lc_pps]
+
         simple_results["age"] = (
-            self.today.jd
+            self.night.jd
             - astropy.time.Time(tran_view.get_time_updated(output="datetime")).jd
         )
 
@@ -307,7 +311,8 @@ class T3Ranking(DropboxUnit):
             for c in metrics["classification"]
         ]
 
-        iage = metrics["age"] > 0
+        # disable for now
+        iage = metrics["age"] > -9999
 
         # Select things saved for as part of Ampel filter
         # iampel = ['ZTFBH Nuclear' in [x['comment'] for x in aa] for aa in [ls['autoannotations'] for ls in marshal_data['metadata']]]
