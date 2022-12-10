@@ -85,7 +85,6 @@ class DropboxUnit(AbsPhotoT3Unit):
             )
 
         self.stats = {"bytes": 0, "files": 0}
-        # self._pool = ThreadPoolExecutor(max_workers=self.max_connections)
         self._uploads = {}
         self._payloads = []
 
@@ -114,7 +113,6 @@ class DropboxUnit(AbsPhotoT3Unit):
         self, gen: Generator[TransientView, T3Send, None], t3s: Optional[T3Store] = None
     ) -> Union[UBson, UnitResult]:
         """ """
-        # DUMMY FUNCTION
         return None
 
     def done(self):
@@ -169,21 +167,22 @@ class DropboxUnit(AbsPhotoT3Unit):
             self._payloads[i : i + 1000] for i in range(0, len(self._payloads), 1000)
         ]
 
+        # Iterate over payload chunks, create a new pool for each
         for payload_subset in payload_subsets:
             entries = []
-            _pool = ThreadPoolExecutor(max_workers=self.max_connections)
-            _futures = {}
+            pool = ThreadPoolExecutor(max_workers=self.max_connections)
+            futures = {}
 
             # Fill the pool
             for payload, path, offset in payload_subset:
-                f = _pool.submit(
+                f = pool.submit(
                     handle_disconnects(self.dbx.files_upload_session_start),
                     payload,
                     close=True,
                 )
-                _futures[f] = (path, len(payload))
+                futures[f] = (path, len(payload))
 
-            for future, (path, offset) in _futures.items():
+            for future, (path, offset) in futures.items():
 
                 start_result = future.result()
                 entries.append(
@@ -214,10 +213,10 @@ class DropboxUnit(AbsPhotoT3Unit):
                 )
                 assert status.is_complete()
                 for future, result in zip(
-                    list(_futures.keys()), status.get_complete().entries
+                    list(futures.keys()), status.get_complete().entries
                 ):
                     if result.is_success():
-                        del _futures[future]
+                        del futures[future]
                     else:
                         raise RuntimeError(str(result.get_failure()))
 
