@@ -106,26 +106,27 @@ class T2QSOFit(AbsLightCurveT2Unit):
 
         # run on the single bands individually
         out_dict: Dict[str, Any] = {}
-        debug = self.logger.level > VERBOSE
+        # debug = self.logger.level > VERBOSE
         for fid in self.filter_ids:
 
             filters = [{"attribute": "fid", "operator": "==", "value": fid}]
 
-            if debug:
-                self.logger.debug(
-                    f"Fitting QSO variability to light curve for filter id {fid}"
-                    f" ({self.filter_names[fid]}-band)"
-                )
-                self.logger.debug("Applying filter: %s" % repr(filters))
+            # if debug:
+            self.logger.debug(
+                f"Fitting QSO variability to light curve for filter id {fid}"
+                f" ({self.filter_names[fid]}-band)"
+            )
+            self.logger.debug("Applying filter: %s" % repr(filters))
 
             # get detections and errors time series
             pps = light_curve.get_ntuples(("jd", "magpsf", "sigmapsf"), filters=filters)
+
             if not pps or len(pps) < self.min_ndet:
-                if debug:
-                    self.logger.debug(
-                        "Lightcurve has only %d points, you asked for %d at least"
-                        % (len(pps) if pps else 0, self.min_ndet)
-                    )
+
+                self.logger.debug(
+                    "Lightcurve has only %d points, you asked for %d at least"
+                    % (len(pps) if pps else 0, self.min_ndet)
+                )
                 out_dict[self.filter_names[fid]] = None
                 continue
 
@@ -144,8 +145,7 @@ class T2QSOFit(AbsLightCurveT2Unit):
             )
             out_dict[self.filter_names[fid]] = results
 
-        if debug:
-            self.logger.debug("output", extra=out_dict)
+        self.logger.debug("output", extra=out_dict)
 
         # return the info as dictionary
         return out_dict

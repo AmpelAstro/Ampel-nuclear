@@ -41,6 +41,7 @@ REJECTION_REASON_CODES = {
     130: "Gaia veto",
     140: "Distance veto",
     141: "No distance could be computed",
+    150: "Last detection did not pass default filter (only when lastOnly=True)",
 }
 
 
@@ -87,7 +88,7 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
     maxPS1matches: int = 100  #: remove source in dense fields (but some galaxies also get many matches, so leave this large!)
 
     lastOnly: int = (
-        0  #: apply all cut only to the most recent detection in the light curve
+        0  #: apply all cuts only to the most recent detection in the light curve
     )
 
     """
@@ -130,6 +131,8 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
 
     -140: Distance veto
     -141: No distance could be computed
+
+    -150: Last detection did not pass default filter (only when lastOnly=True)
     """
 
     def post_init(self) -> None:
@@ -386,14 +389,11 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
 
             return -40
 
+        minmag = np.min(magnr_arr).item()
         # check that source is not too bright in ZTF ref img
-        if self.brightRefMag > np.min(magnr_arr) > 0:
-            self.why = "min(magnr)={0:0.2f}, which is < {1:0.1f}".format(
-                np.min(magnr_arr), self.brightRefMag
-            )
-            self.logger.info(
-                "too bright in ZTF ref img", extra={"minmag": np.min(magnr_arr)}
-            )
+        if self.brightRefMag > minmag:
+            self.why = f"min(magnr)={minmag:0.2f}, which is < {self.brightRefMag:0.1f}"
+            self.logger.info("too bright in ZTF ref img", extra={"minmag": minmag})
 
             return -50
 
@@ -442,7 +442,7 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
             if len(lastcheck) == 0:
                 self.why = "last detection did not pass default filter"
                 self.logger.info(self.why)
-                return "lastdet_defaultfilter"
+                return -150
 
             rb_arr = [
                 rb_arr[np.argmax(jd_arr)]

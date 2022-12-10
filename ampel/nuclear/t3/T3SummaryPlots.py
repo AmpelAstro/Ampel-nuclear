@@ -102,7 +102,7 @@ simple_keys = [
 class T3SummaryPlots(DropboxUnit, AbsPhotoT3Unit):
 
     plotHisto: bool = False  # create histrograms for of the magnitude of the transients in the different summary plots
-    force_date: str = None  # force the save date for testing
+    force_date: Optional[str] = None  # force the save date for testing
 
     def post_init(self):
         super().post_init()
