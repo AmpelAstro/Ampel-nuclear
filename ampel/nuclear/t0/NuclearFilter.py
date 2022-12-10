@@ -370,6 +370,7 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
 
         # get RealBogus scores for observations, check number of bad pixels
         tuptup = alert.get_ntuples(["rb", "jd", "magnr"], filters=self._default_filters)
+        print(tuptup)
 
         # check that we have anything
         if len(tuptup) == 0:
@@ -378,7 +379,11 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
             return -30
 
         # now get the tuples
-        rb_arr, jd_arr, magnr_arr = map(np.array, zip(*tuptup))
+        rb_arr, jd_arr, magnr_arr = zip(*tuptup)
+
+        rb_arr = np.asarray(rb_arr)
+        jd_arr = np.asarray(jd_arr)
+        magnr_arr = np.asarray(magnr_arr)
 
         # check number of detections in all bands
         if len(jd_arr) < self.minDetections:
@@ -499,15 +504,19 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
             return -100
 
         # get some more arrays
-        distnr_arr, magpsf_arr, sigmapsf_arr, rb_arr, fwhm_arr, fid_arr = map(
-            np.array,
-            zip(
-                *alert.get_ntuples(
-                    ["distnr", "magpsf", "sigmapsf", "rb", "fwhm", "fid"],
-                    filters=self._default_filters,
-                )
-            ),
+        distnr_arr, magpsf_arr, sigmapsf_arr, rb_arr, fwhm_arr, fid_arr = zip(
+            *alert.get_ntuples(
+                ["distnr", "magpsf", "sigmapsf", "rb", "fwhm", "fid"],
+                filters=self._default_filters,
+            )
         )
+
+        distnr_arr = np.asarray(distnr_arr)
+        magpsf_arr = np.asarray(magpsf_arr)
+        sigmapsf_arr = np.asarray(sigmapsf_arr)
+        rb_arr = np.asarray(rb_arr)
+        fwhm_arr = np.asarray(fwhm_arr)
+        fid_arr = np.asarray(fid_arr)
 
         # get indices to bands
         idx_g = fid_arr == 1
@@ -551,14 +560,16 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
                 return -130
 
         # if we make it this far, compute the host-flare distance, using only (decent-enough) detections
-        ra_arr, dec_arr, ranr_arr, decnr_arr = map(
-            np.array,
-            zip(
-                *alert.get_ntuples(
-                    ["ra", "dec", "ranr", "decnr"], filters=self._default_filters
-                )
-            ),
+        ra_arr, dec_arr, ranr_arr, decnr_arr = zip(
+            *alert.get_ntuples(
+                ["ra", "dec", "ranr", "decnr"], filters=self._default_filters
+            )
         )
+
+        ra_arr = np.asarray(ra_arr)
+        dec_arr = np.asarray(dec_arr)
+        ranr_arr = np.asarray(decnr_arr)
+        decnr_arr = np.asarray(decnr_arr)
 
         # compute a few different measures of the distance
         # we compute these for each band seperately
