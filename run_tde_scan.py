@@ -116,7 +116,7 @@ def run(
     ctx = DevAmpelContext.load(
         config=AMPEL_CONF,
         db_prefix="ampel-nuclear-test",
-        purge_db=False,
+        purge_db=True,
         one_db=True,
         vault=vault,
     )
@@ -361,15 +361,15 @@ def run(
                         },
                     },
                     "complement": [
-                        {"unit": "TNSReports", "config": {}},
+                        # {"unit": "TNSReports", "config": {}},
                         {
                             "unit": "GROWTHMarshalReport",
                             "config": {},
                         },
-                        {
-                            "unit": "FritzReport",
-                            "config": {"token": {"label": "fritz/token"}},
-                        },
+                    #     {
+                    #         "unit": "FritzReport",
+                    #         "config": {"token": {"label": "fritz/token"}},
+                    #     },
                     ],
                 },
             },
@@ -377,18 +377,18 @@ def run(
                 "unit": "T3SequentialStager",
                 "config": {
                     "execute": [
-                        {
-                            "unit": "T3MetricsPlots",
-                            "config": t3_metrics_config,
-                        },
+                        # {
+                        #     "unit": "T3MetricsPlots",
+                        #     "config": t3_metrics_config,
+                        # },
                         {
                             "unit": "T3Ranking",
                             "config": t3_ranking_config,
                         },
-                        {
-                            "unit": "T3PlotNeoWISE",
-                            "config": t3_plotneowise_config,
-                        },
+                        # {
+                        #     "unit": "T3PlotNeoWISE",
+                        #     "config": t3_plotneowise_config,
+                        # },
                     ],
                 },
             },

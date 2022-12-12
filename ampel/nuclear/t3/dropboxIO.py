@@ -92,10 +92,7 @@ class DropboxUnit(AbsPhotoT3Unit):
             if self.date is not None:
                 date_format = "%Y-%m-%d"
                 req_date = str(datetime.datetime.strptime(self.date, date_format))
-                self.night = (
-                    astropy.time.Time(req_date, format="iso", scale="utc")
-                    + 0.99 * u.day
-                )
+                self.night = astropy.time.Time(req_date, format="iso", scale="utc")
             else:
                 self.night = astropy.time.Time.now()
         else:

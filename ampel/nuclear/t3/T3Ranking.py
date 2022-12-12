@@ -314,10 +314,13 @@ class T3Ranking(DropboxUnit):
         ]
 
         # disable for now
-        iage = metrics["age"] > -9999
+        iage = np.ones_like(metrics["age"], dtype=bool)
 
-        # Select things saved for as part of Ampel filter
-        # iampel = ['ZTFBH Nuclear' in [x['comment'] for x in aa] for aa in [ls['autoannotations'] for ls in marshal_data['metadata']]]
+        # agn_classifications = ["AGN", "agn", "QSO", "qso", "Blazar", "blazar"]
+        #
+        # iagn = np.array(
+        #     [x in agn_classifications for x in metrics["classification"]]
+        # )
 
         iagn = (
             (metrics["classification"] == "AGN")
@@ -325,6 +328,7 @@ class T3Ranking(DropboxUnit):
             | (metrics["classification"] == "QSO")
             | (metrics["classification"] == "Blazar")
         )  # This would use AGN detection...
+
         icv = np.array(["CV" in str(x) for x in metrics["classification"]])
         istar = np.array(["st" in str(x) for x in metrics["classification"]]) | icv
         ibogus = np.array(["bogus" in str(x) for x in metrics["classification"]])
@@ -364,7 +368,7 @@ class T3Ranking(DropboxUnit):
         # try a public stream
         iselect = (
             ipublic
-            & iage
+            # & iage
             & iflexok
             & (iagn == False)
             & (ibogus == False)
