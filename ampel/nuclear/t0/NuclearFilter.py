@@ -41,6 +41,7 @@ REJECTION_REASON_CODES = {
     130: "Gaia veto",
     140: "Distance veto",
     141: "No distance could be computed",
+    150: "Last detection did not pass default filter (only when lastOnly=True)",
 }
 
 
@@ -87,7 +88,7 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
     maxPS1matches: int = 100  #: remove source in dense fields (but some galaxies also get many matches, so leave this large!)
 
     lastOnly: int = (
-        0  #: apply all cut only to the most recent detection in the light curve
+        0  #: apply all cuts only to the most recent detection in the light curve
     )
 
     """
@@ -130,6 +131,8 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
 
     -140: Distance veto
     -141: No distance could be computed
+
+    -150: Last detection did not pass default filter (only when lastOnly=True)
     """
 
     def post_init(self) -> None:
@@ -366,16 +369,18 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
             #   return 0
 
         # get RealBogus scores for observations, check number of bad pixels
-        tuptup = alert.get_ntuples(["rb", "jd", "magnr"], filters=self._default_filters)
+        res_tuples = alert.get_ntuples(
+            ["rb", "jd", "magnr"], filters=self._default_filters
+        )
 
         # check that we have anything
-        if len(tuptup) == 0:
+        if len(res_tuples) == 0:
             self.why = "nothing passed default filter"
             self.logger.info(self.why)
             return -30
 
-        # now get the tuples
-        rb_arr, jd_arr, magnr_arr = map(np.array, zip(*tuptup))
+        res = list(map(list, zip(*res_tuples)))
+        rb_arr, jd_arr, magnr_arr = np.asarray(res)
 
         # check number of detections in all bands
         if len(jd_arr) < self.minDetections:
@@ -386,14 +391,11 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
 
             return -40
 
+        minmag = np.min(magnr_arr).item()
         # check that source is not too bright in ZTF ref img
-        if self.brightRefMag > np.min(magnr_arr) > 0:
-            self.why = "min(magnr)={0:0.2f}, which is < {1:0.1f}".format(
-                np.min(magnr_arr), self.brightRefMag
-            )
-            self.logger.info(
-                "too bright in ZTF ref img", extra={"minmag": np.min(magnr_arr)}
-            )
+        if self.brightRefMag > minmag:
+            self.why = f"min(magnr)={minmag:0.2f}, which is < {self.brightRefMag:0.1f}"
+            self.logger.info("too bright in ZTF ref img", extra={"minmag": minmag})
 
             return -50
 
@@ -442,7 +444,7 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
             if len(lastcheck) == 0:
                 self.why = "last detection did not pass default filter"
                 self.logger.info(self.why)
-                return "lastdet_defaultfilter"
+                return -150
 
             rb_arr = [
                 rb_arr[np.argmax(jd_arr)]
@@ -499,14 +501,20 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
             return -100
 
         # get some more arrays
-        distnr_arr, magpsf_arr, sigmapsf_arr, rb_arr, fwhm_arr, fid_arr = map(
-            np.array,
-            zip(
-                *alert.get_ntuples(
-                    ["distnr", "magpsf", "sigmapsf", "rb", "fwhm", "fid"],
-                    filters=self._default_filters,
-                )
-            ),
+        res = list(
+            map(
+                list,
+                zip(
+                    *alert.get_ntuples(
+                        ["distnr", "magpsf", "sigmapsf", "rb", "fwhm", "fid"],
+                        filters=self._default_filters,
+                    )
+                ),
+            )
+        )
+
+        distnr_arr, magpsf_arr, sigmapsf_arr, rb_arr, fwhm_arr, fid_arr = np.asarray(
+            res
         )
 
         # get indices to bands
@@ -551,14 +559,18 @@ class NuclearFilter(AbsAlertFilter, GaiaVetoMixin):
                 return -130
 
         # if we make it this far, compute the host-flare distance, using only (decent-enough) detections
-        ra_arr, dec_arr, ranr_arr, decnr_arr = map(
-            np.array,
-            zip(
-                *alert.get_ntuples(
-                    ["ra", "dec", "ranr", "decnr"], filters=self._default_filters
-                )
-            ),
+        res = list(
+            map(
+                list,
+                zip(
+                    *alert.get_ntuples(
+                        ["ra", "dec", "ranr", "decnr"], filters=self._default_filters
+                    )
+                ),
+            )
         )
+
+        ra_arr, dec_arr, ranr_arr, decnr_arr = np.asarray(res)
 
         # compute a few different measures of the distance
         # we compute these for each band seperately

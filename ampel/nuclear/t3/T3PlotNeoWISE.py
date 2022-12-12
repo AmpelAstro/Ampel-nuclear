@@ -11,8 +11,8 @@ import io, json, warnings
 from collections.abc import Generator
 from typing import Any, Optional, Union
 
-import astropy.io.ascii
-import matplotlib.pyplot as plt
+import astropy.io.ascii  # type: ignore
+import matplotlib.pyplot as plt  # type: ignore
 import numpy as np
 from pydantic import BaseModel
 import requests
@@ -79,7 +79,9 @@ class T3PlotNeoWISE(DropboxUnit):
         )
         t0 = 58119
 
-        all_transient_names = [t.stock["name"][0] for t in gen]
+        all_transient_names = [
+            str(t.stock["name"][0]) for t in gen if t.stock is not None
+        ]
         all_transients = list(gen)
 
         if all_transient_names is not None:
@@ -100,7 +102,7 @@ class T3PlotNeoWISE(DropboxUnit):
                     )
                 )
             except Exception as e:
-                self.logger.warn(e)
+                self.logger.warn(str(e))
                 self.logger.warn(
                     "New or no data log (check exception above), downloading all sources from ipac"
                 )
@@ -170,7 +172,7 @@ class T3PlotNeoWISE(DropboxUnit):
                     "ra"
                 ), tran_view.get_lightcurves()[-1].get_values("dec")
                 filebase = self.save_location + f"/{tran_year}/{tran_name}/{tran_name}"
-                out_dict = {}
+                out_dict: Optional[dict] = {}
 
                 needs_plot = not self.exists(
                     f"{self.save_location}/{tran_year}/{tran_name}/{filebase}-neowise.pdf"
@@ -184,7 +186,7 @@ class T3PlotNeoWISE(DropboxUnit):
                             self.read_file(filebase + "_neoWISE.txt")[1].text
                         )
                     except Exception as e:  # This occurs for anachronisms, usually due to testing.
-                        self.logger.warn(e)
+                        self.logger.warn(str(e))
                         self.logger.warn(
                             f"Could not find neoWISE log for source {tran_name}, this should not happen.  Check to make sure the path is correct. Re-downloading..."
                         )
@@ -219,9 +221,12 @@ class T3PlotNeoWISE(DropboxUnit):
                         self.logger.warn(
                             "plot_neoWISE: no connection to IRSA; url was:\n" + url
                         )
-                        self.logger.warn(e)
+                        self.logger.warn(str(e))
                         data_log[tran_name] = False
-                        info_list, wise_class, out_dict = [], None, None  # unneccesary?
+                        info_list = []
+                        wise_class = None
+                        out_dict = None
+
                         continue
 
                     astro_tab = astropy.io.ascii.read(table.text)
@@ -292,7 +297,7 @@ class T3PlotNeoWISE(DropboxUnit):
                         if not nb in bins:
                             bins.append(nb)
 
-                bins = np.array(bins).flatten()
+                bins = list(np.array(bins).flatten())
 
                 # compute: W1
                 ii1 = dd["w1sigmpro"] > 0
@@ -321,11 +326,12 @@ class T3PlotNeoWISE(DropboxUnit):
                         inz1_chi
                     )  # use uncertainty estimated from scatter in each bin
 
-                    out_dict["w1_mag_mean"] = ybin1[0, inz1]
-                    out_dict["w1_mag_med"] = w1_med
-                    out_dict["w1_mag_rms"] = ybin1[1, inz1]
-                    out_dict["w1_N_obs"] = ybin1[3, inz1]
-                    out_dict["w1_time"] = xbin1[inz1]
+                    if out_dict is not None:
+                        out_dict["w1_mag_mean"] = ybin1[0, inz1]
+                        out_dict["w1_mag_med"] = w1_med
+                        out_dict["w1_mag_rms"] = ybin1[1, inz1]
+                        out_dict["w1_N_obs"] = ybin1[3, inz1]
+                        out_dict["w1_time"] = xbin1[inz1]
 
                 else:
                     w1_N, w1_med, w1_chi2 = 0, np.nan, np.nan
@@ -377,11 +383,12 @@ class T3PlotNeoWISE(DropboxUnit):
                         inz2_chi
                     )  # use uncertainty estimated from scatter in each bin
 
-                    out_dict["w2_mag_mean"] = ybin2[0, inz2]
-                    out_dict["w2_mag_med"] = w2_med
-                    out_dict["w2_mag_rms"] = ybin2[1, inz2]
-                    out_dict["w2_N_obs"] = ybin2[3, inz2]
-                    out_dict["w2_time"] = xbin2[inz2]
+                    if out_dict is not None:
+                        out_dict["w2_mag_mean"] = ybin2[0, inz2]
+                        out_dict["w2_mag_med"] = w2_med
+                        out_dict["w2_mag_rms"] = ybin2[1, inz2]
+                        out_dict["w2_N_obs"] = ybin2[3, inz2]
+                        out_dict["w2_time"] = xbin2[inz2]
 
                 else:
                     w2_N, w2_med, w2_chi2 = 0, np.nan, np.nan
@@ -415,17 +422,19 @@ class T3PlotNeoWISE(DropboxUnit):
                 # if w2_N>0:
                 #   wise_info += '; <w2>={0:0.2f}'.format(w2_med)
 
-                if not np.isnan(np.median(w1minw2)):
-                    wise_info += "; <w1-w2>={0:0.2f}".format(np.median(w1minw2))
-                    out_dict["<w1-w2>"] = np.median(w1minw2)
+                if out_dict is not None:
 
-                if not np.isnan(w1_chi2):
-                    wise_info += "; chi2(w1)={0:0.1f}".format(w1_chi2)
-                    out_dict["chi2(w1)"] = w1_chi2
+                    if not np.isnan(np.median(w1minw2)):
+                        wise_info += "; <w1-w2>={0:0.2f}".format(np.median(w1minw2))
+                        out_dict["<w1-w2>"] = np.median(w1minw2)
 
-                if not np.isnan(w2_chi2):
-                    wise_info += "; chi2(w2)={0:0.1f}".format(w2_chi2)
-                    out_dict["chi2(w2)"] = w2_chi2
+                    if not np.isnan(w1_chi2):
+                        wise_info += "; chi2(w1)={0:0.1f}".format(w1_chi2)
+                        out_dict["chi2(w1)"] = w1_chi2
+
+                    if not np.isnan(w2_chi2):
+                        wise_info += "; chi2(w2)={0:0.1f}".format(w2_chi2)
+                        out_dict["chi2(w2)"] = w2_chi2
 
                 # we want at least 10 W2 detections over 3 epochs
                 if w2_N > 10:
@@ -584,6 +593,7 @@ class T3PlotNeoWISE(DropboxUnit):
         self.put(self.save_location + "/neowise_log.json", buf.read())
 
         self.commit()
+        return None
 
     def binthem(
         self,

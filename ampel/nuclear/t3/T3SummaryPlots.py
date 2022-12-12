@@ -13,12 +13,12 @@ from collections.abc import Generator
 from typing import Any, Optional, Union
 
 from pydantic import BaseModel
-import matplotlib as mpl
-import corner
-import astropy
+import matplotlib as mpl  # type: ignore
+import corner  # type: ignore
+import astropy  # type: ignore
 from numpy import log10, sqrt, log
 import numpy as np
-import pandas as pd
+import pandas as pd  # type: ignore
 from matplotlib import pyplot as plt
 
 from ampel.types import UBson, T3Send
@@ -102,7 +102,7 @@ simple_keys = [
 class T3SummaryPlots(DropboxUnit, AbsPhotoT3Unit):
 
     plotHisto: bool = False  # create histrograms for of the magnitude of the transients in the different summary plots
-    force_date: str = None  # force the save date for testing
+    force_date: Optional[str] = None  # force the save date for testing
 
     def post_init(self):
         super().post_init()
@@ -127,7 +127,7 @@ class T3SummaryPlots(DropboxUnit, AbsPhotoT3Unit):
     ) -> Union[UBson, UnitResult]:
         """ """
         # DUMMY FUNCTION FOR NOW
-        a = 1
+        return None
 
     def add(self, transients):
         """

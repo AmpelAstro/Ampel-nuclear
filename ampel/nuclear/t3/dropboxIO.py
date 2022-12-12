@@ -85,8 +85,8 @@ class DropboxUnit(AbsPhotoT3Unit):
             )
 
         self.stats = {"bytes": 0, "files": 0}
-        self._pool = ThreadPoolExecutor(max_workers=self.max_connections)
         self._uploads = {}
+        self._payloads = []
 
         if self.base_location == "/mampel":
             if self.date is not None:
@@ -113,7 +113,6 @@ class DropboxUnit(AbsPhotoT3Unit):
         self, gen: Generator[TransientView, T3Send, None], t3s: Optional[T3Store] = None
     ) -> Union[UBson, UnitResult]:
         """ """
-        # DUMMY FUNCTION
         return None
 
     def done(self):
@@ -147,8 +146,6 @@ class DropboxUnit(AbsPhotoT3Unit):
 
     @handle_disconnects
     def put(self, path, payload):
-        print("PUT")
-        print("------")
         if self.dryRun:
             if path.startswith("/"):
                 path = path[1:]
@@ -159,55 +156,69 @@ class DropboxUnit(AbsPhotoT3Unit):
                 f.write(payload)
             self.logger.info(f"Wrote {len(payload)} bytes to {path}")
         else:
-            f = self._pool.submit(
-                handle_disconnects(self.dbx.files_upload_session_start),
-                payload,
-                close=True,
-            )
-            self._uploads[f] = (path, len(payload))
+            self._payloads.append((payload, path, len(payload)))
         self.stats["bytes"] += len(payload)
         self.stats["files"] += 1
 
     def commit(self) -> None:
-        print("COMMIT")
-        print("------")
-        entries = []
-        for future, (path, offset) in self._uploads.items():
-            start_result = future.result()
-            entries.append(
-                dropbox.files.UploadSessionFinishArg(
-                    cursor=dropbox.files.UploadSessionCursor(
-                        session_id=start_result.session_id, offset=offset
-                    ),
-                    commit=dropbox.files.CommitInfo(
-                        path=path, mode=dropbox.files.WriteMode.overwrite
-                    ),
-                )
-            )
-        if not entries:
-            return
 
-        self.logger.info(f"committing {len(entries)} uploads")
-        launch_result = handle_disconnects(self.dbx.files_upload_session_finish_batch)(
-            entries
-        )
-        if not launch_result.is_complete():
-            status = backoff.on_predicate(
-                backoff.expo,
-                predicate=lambda job_status: job_status.is_in_progress(),
-                max_time=300,
-                max_value=5,
-            )(handle_disconnects(self.dbx.files_upload_session_finish_batch_check))(
-                launch_result.get_async_job_id()
-            )
-            assert status.is_complete()
-            for future, result in zip(
-                list(self._uploads.keys()), status.get_complete().entries
-            ):
-                if result.is_success():
-                    del self._uploads[future]
-                else:
-                    raise RuntimeError(str(result.get_failure()))
+        # Dropbox cannot handle queues containing more than 1000 files
+        payload_subsets = [
+            self._payloads[i : i + 1000] for i in range(0, len(self._payloads), 1000)
+        ]
+
+        # Iterate over payload chunks, create a new pool for each
+        for payload_subset in payload_subsets:
+            entries = []
+            pool = ThreadPoolExecutor(max_workers=self.max_connections)
+            futures = {}
+
+            # Fill the pool
+            for payload, path, offset in payload_subset:
+                f = pool.submit(
+                    handle_disconnects(self.dbx.files_upload_session_start),
+                    payload,
+                    close=True,
+                )
+                futures[f] = (path, len(payload))
+
+            for future, (path, offset) in futures.items():
+
+                start_result = future.result()
+                entries.append(
+                    dropbox.files.UploadSessionFinishArg(
+                        cursor=dropbox.files.UploadSessionCursor(
+                            session_id=start_result.session_id, offset=offset
+                        ),
+                        commit=dropbox.files.CommitInfo(
+                            path=path, mode=dropbox.files.WriteMode.overwrite
+                        ),
+                    )
+                )
+            if not entries:
+                return
+
+            self.logger.info(f"committing {len(entries)} uploads")
+            launch_result = handle_disconnects(
+                self.dbx.files_upload_session_finish_batch
+            )(entries)
+            if not launch_result.is_complete():
+                status = backoff.on_predicate(
+                    backoff.expo,
+                    predicate=lambda job_status: job_status.is_in_progress(),
+                    max_time=300,
+                    max_value=5,
+                )(handle_disconnects(self.dbx.files_upload_session_finish_batch_check))(
+                    launch_result.get_async_job_id()
+                )
+                assert status.is_complete()
+                for future, result in zip(
+                    list(futures.keys()), status.get_complete().entries
+                ):
+                    if result.is_success():
+                        del futures[future]
+                    else:
+                        raise RuntimeError(str(result.get_failure()))
 
     @lru_cache(maxsize=1024)
     @handle_disconnects
