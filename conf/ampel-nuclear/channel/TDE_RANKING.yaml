@@ -18,12 +18,12 @@ template: ztf_uw_private
 t0_filter:
   unit: NuclearFilter
   config:
-     minDetections: 3
-     maxDistPS1source: 0.5
-     closePS1dist: 0.5
-     maxDeltaRad: 0.5
-     diffmagLimit: 20
-     maxDeltaMag: 2.5
+    minDetections: 3
+    maxDistPS1source: 0.5
+    closePS1dist: 0.5
+    maxDeltaRad: 0.5
+    diffmagLimit: 20
+    maxDeltaMag: 2.5
 t2_compute:
   - unit: T2SimpleMetrics
   - unit: T2CatalogMatch
@@ -34,9 +34,9 @@ t2_compute:
           use: catsHTM
         SDSS_spec:
           keys_to_append:
-          - z
-          - bptclass
-          - subclass
+            - z
+            - bptclass
+            - subclass
           rs_arcsec: 2
           use: extcats
           all: False
@@ -46,15 +46,15 @@ t2_compute:
           use: extcats
         milliquas:
           keys_to_append:
-          - broad_type
-          - ref_name
+            - broad_type
+            - ref_name
           rs_arcsec: 2
           use: extcats
         portsmouth:
           keys_to_append:
-          - sigma_stars
-          - sigma_stars_err
-          - bpt
+            - sigma_stars
+            - sigma_stars_err
+            - bpt
           rs_arcsec: 2
           use: extcats
         ptfvar:
@@ -67,7 +67,7 @@ t2_compute:
           use: extcats
         wise_color:
           keys_to_append:
-          - W1mW2
+            - W1mW2
           rs_arcsec: 2
           use: extcats
   - unit: T2FlexFit
@@ -79,7 +79,7 @@ t3_supervise:
   # Start all the T3s at the same time at 7:00 PST
   - name: slack_supplier
     template: ztf_periodic_summary
-    schedule: every().day.at('16:00') 
+    schedule: every().day.at('16:00')
     load:
       - TRANSIENT
       - T2RECORD
@@ -89,33 +89,28 @@ t3_supervise:
       - TNSReports
       - GROWTHMarshalReport
       - FritzReport
-
     run:
       - unit: SlackSummaryPublisher
         config:
           slack_token:
             label: slack/ztfbh
-          slack_channel: '#ampel-live'
+          slack_channel: "#ampel-live"
           full_photometry: false
-
-      - unit: T3MetricsPlots 
+      - unit: T3MetricsPlots
         config:
           verbose: True
-          drobox_token: 
+          drobox_token:
             label: dropbox/token
-    
-      - unit: T3Ranking    
+      - unit: T3Ranking
         config:
           drobox_token:
             label: dropbox/token
-
       - unit: T3PlotNeoWISE # could run only once for first data point
         config:
           apply_qcuts: True
           plot_allWISE: False
           dropbox_token:
             label: dropbox/token
-
 
   # Fritz ingestion goes every hour
   # to do: also add auto classifications/annotations to this
@@ -131,4 +126,4 @@ t3_supervise:
           token:
             key: fritz/jvs/ampelbot
           base_url: https://fritz.science
-          groups: ['Nuclear Transients']
+          groups: ["Nuclear Transients"]
