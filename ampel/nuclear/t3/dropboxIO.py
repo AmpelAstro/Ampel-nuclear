@@ -41,7 +41,6 @@ class DropboxUnit(AbsPhotoT3Unit):
     dryRunDir: Optional[
         str
     ] = None  # if dryRun is enabled, you must specify a desired temporary directory
-    logger: AmpelLogger
     base_location: str = "/mampel"  #:optional diff. directory for testing
     max_connections: int = 20
     date: Optional[str] = None
