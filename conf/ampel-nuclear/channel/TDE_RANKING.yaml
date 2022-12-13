@@ -90,31 +90,31 @@ t3_supervise:
       - GROWTHMarshalReport
       - FritzReport
 
-      run:
-        - unit: SlackSummaryPublisher
-          config:
-            slack_token:
-              label: slack/ztfbh
-            slack_channel: '#ampel-live'
-            full_photometry: false
+    run:
+      - unit: SlackSummaryPublisher
+        config:
+          slack_token:
+            label: slack/ztfbh
+          slack_channel: '#ampel-live'
+          full_photometry: false
 
-        - unit: T3MetricsPlots 
-          config:
-            verbose: True
-            drobox_token: 
-              label: dropbox/token
-     
-        - unit: T3Ranking    
-          config:
-            drobox_token:
-              label: dropbox/token
+      - unit: T3MetricsPlots 
+        config:
+          verbose: True
+          drobox_token: 
+            label: dropbox/token
+    
+      - unit: T3Ranking    
+        config:
+          drobox_token:
+            label: dropbox/token
 
-        - unit: T3PlotNeoWISE # could run only once for first data point
-          config:
-            apply_qcuts: True
-            plot_allWISE: False
-            dropbox_token:
-              label: dropbox/token
+      - unit: T3PlotNeoWISE # could run only once for first data point
+        config:
+          apply_qcuts: True
+          plot_allWISE: False
+          dropbox_token:
+            label: dropbox/token
 
 
   # Fritz ingestion goes every hour
