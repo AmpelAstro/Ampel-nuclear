@@ -99,11 +99,11 @@ t3_supervise:
       - unit: T3MetricsPlots
         config:
           verbose: True
-          drobox_token:
+          dropbox_token:
             label: dropbox/token
       - unit: T3Ranking
         config:
-          drobox_token:
+          dropbox_token:
             label: dropbox/token
       - unit: T3PlotNeoWISE # could run only once for first data point
         config:
@@ -124,6 +124,6 @@ t3_supervise:
       - unit: SkyPortalPublisher
         config:
           token:
-            key: fritz/jvs/ampelbot
+            label: fritz/jvs/ampelbot
           base_url: https://fritz.science
           groups: ["Nuclear Transients"]
