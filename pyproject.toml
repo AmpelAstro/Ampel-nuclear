@@ -34,7 +34,7 @@ include = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
-ampel-ztf = {version = ">=0.8.3a4,<0.8.4", source = "pypi"}
+ampel-ztf = {version = ">=0.8.3a7,<0.8.4", source = "pypi"}
 ampel-hu-astro = {version = ">=0.8.3a2,<0.8.4", source = "pypi", extras = ["slack", "sncosmo"]}
 dropbox = "^11.36.0"
 corner = "^2.2.1"
@@ -47,8 +47,8 @@ pytest-mock = "^3.6.1"
 types-requests = "^2.25.9"
 types-pytz = "^2021.1.2"
 pre-commit = "^2.20.0"
-# duplicate to add a dev extra without further constraining the version
-ampel-ztf = {version = "*", extras = ["kafka"]}
+# duplicate to add a dev extra
+ampel-ztf = {version = ">=0.8.3a7,<0.8.4", source = "pypi", extras = ["kafka"]}
 
 [tool.conda-lock]
 channels = ["conda-forge"]
