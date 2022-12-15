@@ -5,6 +5,8 @@ members:
   - sjoertvv
   - mitchellkarmen
   - simeonreusch
+  - robertdstein
+  - AmpelProject/core-devs
 # Auto-complete mode: how to treat photopoints be treated once a transient has
 # been accepted.
 # - false: apply filter to all photopoints
