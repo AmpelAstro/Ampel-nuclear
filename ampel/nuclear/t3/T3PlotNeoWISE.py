@@ -79,10 +79,10 @@ class T3PlotNeoWISE(DropboxUnit):
         )
         t0 = 58119
 
-        all_transient_names = [
-            str(t.stock["name"][0]) for t in gen if t.stock is not None
-        ]
         all_transients = list(gen)
+        all_transient_names = [
+            str(t.stock["name"][0]) for t in all_transients if t.stock is not None
+        ]
 
         if all_transient_names is not None:
             try:
@@ -161,7 +161,7 @@ class T3PlotNeoWISE(DropboxUnit):
                 except NotADirectoryError:
                     ...
 
-            for i, tran_view in enumerate(gen):
+            for i, tran_view in enumerate(all_transients):
                 tran_name = tran_view.stock["name"][0]
                 tran_year = "20" + tran_name[3:5]
                 need_data = True
