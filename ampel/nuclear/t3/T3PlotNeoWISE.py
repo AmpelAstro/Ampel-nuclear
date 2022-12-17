@@ -87,9 +87,7 @@ class T3PlotNeoWISE(DropboxUnit):
         if all_transient_names is not None:
             try:
                 # neowise_log.json tracks which sources we have local data for.  to-do: update log for sufficiently old entries
-                data_log = self.read_file(self.save_location + "/neowise_log.json")[
-                    1
-                ].json()
+                data_log = self.read_file(self.save_location + "/neowise_log.json").json()
                 self.logger.info(
                     "found {} out of {} sources in data log".format(
                         sum(
