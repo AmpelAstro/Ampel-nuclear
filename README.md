@@ -5,7 +5,7 @@ Central repository to host AMPEL code to search for and analyze nuclear transien
 ### Prerequisites
 You need to export environment variables for the [AMPEL ZTF archive](https://ampelproject.github.io/astronomy/ztf/index) (tokens are available [here](https://ampel.zeuthen.desy.de/live/dashboard/tokens)), for [Fritz](https://fritz.science/), and for the dropbox API (ask Sjoert). 
 
-Furthermore, you need a running instance of [MongoDB](https://www.mongodb.com/docs/manual/installation/).
+Furthermore, you need a running instance of [MongoDB](https://www.mongodb.com/docs/manual/installation/). On macOS, make sure you have the command line tools installed (in doubt, run `xcode-select –install`).
 
 ### Setup
 Create a fresh Python 3.10 conda env
