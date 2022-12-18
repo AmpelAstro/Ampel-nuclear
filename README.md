@@ -40,10 +40,16 @@ To run the test, start your local MongoDB. And then issue
 ./run_tde_scan.py -i
 ```
 
-The `-i` initiates (and saves) a new archive API stream token. To change the date, use `-d YYYY-MM-DD` for a certain day. The script will request alerts for the 24 hours after this date. 
+If you cannot execute the file, issue `chmod +x run_tde_scan.py`.
 
-Note: When requesting a full day with `-d` from the archive, the first run will probably fail, as the archive database has not fully ramped up yet (`URL is locked`). In this case, just rerun `./run_tde_scan.py -d YYYY-MM-DD` (without `i` to prevent requesting a new stream token and overwriting the current one) until the archive starts serving alerts (you will see them getting ingested).
+Note: To push the result of a run to the dropbox, add `-p`.
 
-To check the output, go to the `temp` directory that gets created when script is run without `-p` (push to dropbox).
+The `-i` initiates (and saves) a new archive API stream token. To request one day, use `-d YYYY-MM-DD` for a certain day. The script will request alerts for the 24 hours after this date.
+
+Your can also use `--daysago n` to scan the last `n` days. 
+
+Note: When requesting a full day with `-d` or the last `n` days with `--daysago n` from the archive, the first run will probably fail, as the archive database has not fully ramped up yet (`URL is locked`). In this case, just rerun `./run_tde_scan.py` (without any parameters to prevent requesting a new stream token and overwriting the current one) until the archive starts serving alerts (you will see them getting ingested).
+
+To check the output, go to the `temp` directory that gets created when script is run without `-p` (push to dropbox), or check the dropbox.
 
 To see all available commands of the test script, run `./run_tde_scan.py -h`.
