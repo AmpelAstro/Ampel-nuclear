@@ -53,3 +53,16 @@ Note: When requesting a full day with `-d` or the last `n` days with `--daysago 
 To check the output, go to the `temp` directory that gets created when script is run without `-p` (push to dropbox), or check the dropbox.
 
 To see all available commands of the test script, run `./run_tde_scan.py -h`.
+
+### Examples
+```
+./run_tde_scan.py -i --daysago 4 -p
+
+```
+
+This will perform a search for the last 4 days and push the results to the dropbox.
+```
+./run_tde_scan.py -i -d 2022-10-06
+
+```
+This will perform a search for October 6, 2022 and save the result in a local directory.
