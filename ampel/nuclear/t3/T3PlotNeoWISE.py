@@ -181,7 +181,7 @@ class T3PlotNeoWISE(DropboxUnit):
                     self.logger.info(f"reading: {tran_name}_neoWISE.txt")
                     try:
                         astro_tab = astropy.io.ascii.read(
-                            self.read_file(filebase + "_neoWISE.txt")[1].text
+                            self.read_file(filebase + "_neoWISE.txt").text
                         )
                     except Exception as e:  # This occurs for anachronisms, usually due to testing.
                         self.logger.warn(str(e))

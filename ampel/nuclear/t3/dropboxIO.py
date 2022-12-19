@@ -10,7 +10,7 @@
 import dropbox  # type: ignore
 import os
 import tempfile
-from typing import Optional, Union
+from typing import Optional, Union, TYPE_CHECKING
 from collections.abc import Generator
 from functools import lru_cache
 import datetime
@@ -30,6 +30,9 @@ from ampel.abstract.AbsPhotoT3Unit import AbsPhotoT3Unit
 from ampel.secret.NamedSecret import NamedSecret
 
 from ampel.log.AmpelLogger import AmpelLogger
+
+if TYPE_CHECKING:
+    from requests.models import Response
 
 handle_disconnects = backoff.on_exception(backoff.expo, ConnectionError, max_time=300)
 
@@ -267,15 +270,18 @@ class DropboxUnit(AbsPhotoT3Unit):
             return False
 
     @handle_disconnects
-    def read_file(self, path):
+    def read_file(self, path: str) -> "Response":
         if self.dryRun:
             filepath_local = os.path.join(
                 self.tmpdir, path[1:] if path.startswith("/") else path
             )
 
             if os.path.exists(filepath_local):
-                with open(filepath_local) as f:
-                    return f.read()
+                r = Response()
+                with open(filepath_local, "rb") as f:
+                    r._content = f.read()
+                    r.status_code = 200
+                    return r
             else:
                 self.logger.info(
                     "File {} not found locally, searching dropbox".format(
@@ -284,8 +290,8 @@ class DropboxUnit(AbsPhotoT3Unit):
                 )
 
         try:
-            metadata, f = self.dbx.files_download(path)
-            return f
+            metadata, response = self.dbx.files_download(path)
+            return response
         except dropbox.exceptions.ApiError as exc:
             if (
                 isinstance(exc.error, dropbox.files.DownloadError)
