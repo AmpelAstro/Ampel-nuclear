@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ampel-nuclear"
-version = "0.8.3a5"
+version = "0.8.3a6"
 license = "BSD-3-Clause"
 readme = "README.md"
 description = "Astronomy units for the Ampel system to analyze nuclear events like TDEs"
