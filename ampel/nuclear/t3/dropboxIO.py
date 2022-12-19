@@ -24,7 +24,7 @@ from requests.exceptions import ConnectionError
 
 from ampel.types import UBson, T3Send
 from ampel.view.TransientView import TransientView
-from ampel.view.T3Store import T3Store
+from ampel.struct.T3Store import T3Store
 from ampel.struct.UnitResult import UnitResult
 from ampel.abstract.AbsPhotoT3Unit import AbsPhotoT3Unit
 from ampel.secret.NamedSecret import NamedSecret
