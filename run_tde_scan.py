@@ -13,6 +13,7 @@ from ampel.secret.AmpelVault import AmpelVault
 from ampel.secret.DictSecretProvider import DictSecretProvider
 from ampel.dev.DevAmpelContext import DevAmpelContext
 from ampel.secret.NamedSecret import NamedSecret
+from ampel.cli.config import get_user_data_config_path
 
 
 matplotlib.use("Agg")
@@ -108,13 +109,15 @@ def run(
 
     vault = AmpelVault([DictSecretProvider(secrets)])
 
-    cwd = os.getcwd()
-    AMPEL_CONF = f"{cwd}/ampel_conf.yaml"
-
     channel = "AMPEL_NUCLEAR_TEST"
 
+    config = get_user_data_config_path()
+
+    if not os.path.isfile(config):
+        raise ImportError("No AMPEL config found. Run 'ampel config install' first.")
+
     ctx = DevAmpelContext.load(
-        config=AMPEL_CONF,
+        config=config,
         db_prefix="ampel-nuclear-test",
         purge_db=False,
         one_db=True,

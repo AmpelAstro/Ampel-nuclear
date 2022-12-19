@@ -20,9 +20,9 @@ git clone https://github.com/AmpelProject/ampel-nuclear
 cd Ampel-nuclear
 poetry install
 ```
-Now we have to build the ampel config. Issue
+Now we have to build the ampel config and install it in the conda env. Issue
 ```
-ampel config build -out ampel_conf.yaml
+ampel config install
 ```
 Note: this will throw some import errors, but you can ignore these because those packages are not needed locally. 
 
@@ -48,7 +48,7 @@ The `-i` initiates (and saves) a new archive API stream token. To request one da
 
 Your can also use `--daysago n` to scan the last `n` days. 
 
-Note: When requesting a full day with `-d` or the last `n` days with `--daysago n` from the archive, the first run will probably fail, as the archive database has not fully ramped up yet (`URL is locked`). In this case, just rerun `./run_tde_scan.py` (without any parameters to prevent requesting a new stream token and overwriting the current one) until the archive starts serving alerts (you will see them getting ingested).
+Note: When requesting a full day with `-d` or the last `n` days with `--daysago n` from the archive, the first run will probably fail, as the archive database has not fully ramped up yet (`URL is locked`). In this case, just rerun `./run_tde_scan.py`, without any parameters except for `-p` if you want to enable dropbox-push to prevent requesting a new stream token and overwriting the current one until the archive starts serving alerts (you will see them getting ingested).
 
 To check the output, go to the `temp` directory that gets created when script is run without `-p` (push to dropbox), or check the dropbox.
 
