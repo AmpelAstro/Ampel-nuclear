@@ -21,6 +21,7 @@ import astropy.time  # type: ignore
 from astropy import units as u
 import backoff
 from requests.exceptions import ConnectionError
+from requests.models import Response
 
 from ampel.types import UBson, T3Send
 from ampel.view.TransientView import TransientView
@@ -31,8 +32,6 @@ from ampel.secret.NamedSecret import NamedSecret
 
 from ampel.log.AmpelLogger import AmpelLogger
 
-if TYPE_CHECKING:
-    from requests.models import Response
 
 handle_disconnects = backoff.on_exception(backoff.expo, ConnectionError, max_time=300)
 
