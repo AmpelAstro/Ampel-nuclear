@@ -20,6 +20,8 @@ matplotlib.use("Agg")
 
 logger = AmpelLogger.get_logger()
 
+purge_db = False
+
 temp_dir_base = os.path.join(os.getcwd(), "temp")
 
 
@@ -119,7 +121,7 @@ def run(
     ctx = DevAmpelContext.load(
         config=config,
         db_prefix="ampel-nuclear-test",
-        purge_db=False,
+        purge_db=purge_db,
         one_db=True,
         vault=vault,
     )
