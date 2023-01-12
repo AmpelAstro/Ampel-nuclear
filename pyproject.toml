@@ -34,7 +34,7 @@ include = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.11"
-ampel-interface = "^0.8.3-beta.13"
+ampel-interface = "^0.8.3-beta.14"
 ampel-ztf = {version = ">=0.8.3a10,<0.8.4", source = "pypi"}
 ampel-hu-astro = {version = ">=0.8.3a10,<0.8.4", source = "pypi", extras = ["slack", "sncosmo"]}
 dropbox = "^11.36.0"
