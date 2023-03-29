@@ -160,14 +160,14 @@ docs = ["Sphinx (>=6.1.2,<6.2.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)",
 
 [[package]]
 name = "ampel-core"
-version = "0.8.5"
+version = "0.8.6"
 description = "Alice in Modular Provenance-Enabled Land"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.12"
 files = [
-    {file = "ampel_core-0.8.5-py3-none-any.whl", hash = "sha256:10d21ec55a17c8327e6a72fc747f31e706fa5a2d820a2a4353b9d161fd06dbd8"},
-    {file = "ampel_core-0.8.5.tar.gz", hash = "sha256:f3aa65578a7abee50d07068436156c03f1b59a2613a91813a8ff0ece6bc25994"},
+    {file = "ampel_core-0.8.6-py3-none-any.whl", hash = "sha256:c3132fbe9b585a33c4e747d4d79e4ba454368ecb38e917ddc6b9c01c196c89d4"},
+    {file = "ampel_core-0.8.6.tar.gz", hash = "sha256:d0fca9bc7ef33223f962da275b7008aad89355e3d20d5294b97ab8cb02e38126"},
 ]
 
 [package.dependencies]
@@ -185,7 +185,7 @@ yq = ">=3.0.0,<4.0.0"
 
 [package.extras]
 docs = ["Sphinx (>=6.1.2,<6.2.0)", "sphinx-autodoc-typehints (>=1.11.1,<2.0.0)", "sphinx-press-theme (>=0.5.1,<0.9.0)", "tomlkit (>=0.11.0,<0.12.0)"]
-server = ["fastapi (>=0.92,<0.93)", "uvicorn[standard] (>=0.20.0,<0.21.0)"]
+server = ["fastapi (>=0.95,<0.96)", "uvicorn[standard] (>=0.21.1,<0.22.0)"]
 slack = ["slack-sdk (>=3.18.1,<4.0.0)"]
 
 [[package]]
@@ -291,21 +291,21 @@ mpl = ["matplotlib"]
 
 [[package]]
 name = "ampel-ztf"
-version = "0.8.4"
+version = "0.8.5"
 description = "Zwicky Transient Facility support for the Ampel system"
 category = "main"
 optional = false
 python-versions = ">=3.10,<3.12"
 files = [
-    {file = "ampel_ztf-0.8.4-py3-none-any.whl", hash = "sha256:d067e38284620ed9b4f1c22fdc731c2ae06928998aa7bffeb5fc305ef0c8ff26"},
-    {file = "ampel_ztf-0.8.4.tar.gz", hash = "sha256:f6cd77c66cd5d167db264acac2eb394362331be80d6a9c1a9f26bb1a5fda50c5"},
+    {file = "ampel_ztf-0.8.5-py3-none-any.whl", hash = "sha256:632c0de723a022e741faf368111d046f7aa368f7d34fd9127deb1a661464f6f9"},
+    {file = "ampel_ztf-0.8.5.tar.gz", hash = "sha256:8178162ba493c9239b00357f057db87f53697c6acd3c983a59db1ceea8381d46"},
 ]
 
 [package.dependencies]
 aiohttp = ">=3.7.3,<4.0.0"
 ampel-alerts = ">=0.8.3,<0.9.0"
-ampel-core = ">=0.8.3,<0.9.0"
-ampel-interface = ">=0.8.3,<0.9.0"
+ampel-core = ">=0.8.6,<0.9.0"
+ampel-interface = ">=0.8.7,<0.9.0"
 ampel-photometry = ">=0.8.3,<0.9.0"
 astropy = ">=5.0,<6.0"
 backoff = ">=2.0.0,<3.0.0"
@@ -323,7 +323,7 @@ bayes = ["ampel-plot (>=0.8.3,<0.9.0)", "pandas (>=1.5.2,<2.0.0)", "planobs (>=0
 fp = ["pandas (>=1.5.2,<2.0.0)", "planobs (>=0.6.1,<0.7.0)"]
 healpix = ["healpy (>=1.15,<2.0)"]
 kafka = ["confluent-kafka (>=2.0.0,<3.0.0)"]
-light-curve = ["light-curve (>=0.6,<0.7)"]
+light-curve = ["light-curve (>=0.7,<0.8)"]
 plot = ["ampel-plot (>=0.8.3,<0.9.0)"]
 
 [[package]]
@@ -3247,4 +3247,4 @@ requests = ">=2.28.2,<3.0.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "9b5ec0329e47fec43a6e91ef5429a07a77f3be35c42a9d098fa2c10ee51c5fbd"
+content-hash = "b0527a89ba86872e7f453d8e3bf1f57551b7e234cdc38f129993265426f66ceb"
