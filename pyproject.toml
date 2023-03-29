@@ -41,13 +41,13 @@ dropbox = "^11.36.0"
 corner = "^2.2.1"
 
 [tool.poetry.dev-dependencies]
-mypy = "^1.0"
-pytest = "^7.2.1"
+mypy = "^1.1.1"
+pytest = "^7.2.2"
 pytest-cov = "^4.0.0"
 pytest-mock = "^3.10.0"
 types-requests = "^2.25.9"
 types-pytz = "^2022.1.2"
-pre-commit = "^3.0.4"
+pre-commit = "^3.2.1"
 # duplicate to add a dev extra
 ampel-ztf = {version = ">=0.8.4,<0.8.5", source = "pypi", extras = ["kafka"]}
 
