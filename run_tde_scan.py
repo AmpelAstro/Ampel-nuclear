@@ -1,20 +1,22 @@
 #!/usr/bin/env python
-import requests, os, argparse, time, datetime
-from typing import Optional, Union, Any
-from astropy.time import Time  # type: ignore
-import matplotlib  # type: ignore
+import argparse
+import datetime
+import os
+import time
+from typing import Any, Optional, Union
 
+import matplotlib  # type: ignore
+import requests
+from ampel.cli.config import get_user_data_config_path
+from ampel.dev.DevAmpelContext import DevAmpelContext
 from ampel.log.AmpelLogger import AmpelLogger
 from ampel.nuclear.t0.NuclearFilter import NuclearFilter
-
-from ampel.ztf.t0.load.ZTFArchiveAlertLoader import ZTFArchiveAlertLoader
-from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
 from ampel.secret.AmpelVault import AmpelVault
 from ampel.secret.DictSecretProvider import DictSecretProvider
-from ampel.dev.DevAmpelContext import DevAmpelContext
 from ampel.secret.NamedSecret import NamedSecret
-from ampel.cli.config import get_user_data_config_path
-
+from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
+from ampel.ztf.t0.load.ZTFArchiveAlertLoader import ZTFArchiveAlertLoader
+from astropy.time import Time  # type: ignore
 
 matplotlib.use("Agg")
 
