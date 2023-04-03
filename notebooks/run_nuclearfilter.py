@@ -14,6 +14,7 @@ from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
 from ampel.ztf.t0.load.ZTFArchiveAlertLoader import ZTFArchiveAlertLoader
 from ampel.ztf.util.ZTFIdMapper import ZTFIdMapper
 from astropy.time import Time
+from tqdm import tqdm
 
 LOGGER = AmpelLogger.get_logger()
 
@@ -89,7 +90,7 @@ def run_filter(
 
     infile = basedir / f"{date_start}_to_{date_end}.pickle"
 
-    infile = Path("BS")
+    # infile = Path("BS")
 
     if infile.is_file():
         print("Reading local file")
@@ -143,12 +144,14 @@ def run_filter(
 
     ztf_ids = []
 
-    for alert in all_alerts_shaped:
-        if t0filter.process(alert):
+    for alert in tqdm(all_alerts_shaped):
+        returncode = t0filter.process(alert)
+        if returncode == True:
             ztfid = ZTFIdMapper.to_ext_id(alert.stock)
             ztf_ids.append(ztfid)
 
     ztf_ids = list(set(ztf_ids))
+    print(len(ztf_ids))
 
     print(
         f"Processed {len(all_alerts_shaped)} alerts, found {len(ztf_ids)} candidates."
@@ -216,8 +219,8 @@ if __name__ == "__main__":
     initiate = cli_args.initiate
     token_only = cli_args.token
 
-    date_start = "2020-03-03"
-    date_end = "2020-03-04"
+    date_start = "2022-03-03"
+    date_end = "2022-03-04"
 
     resume_token = initiate_token(
         initiate, date_start=date_start, date_end=date_end, token_only=token_only
