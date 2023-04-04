@@ -1,0 +1,80 @@
+name: nuclear-rerun2
+
+mongo:
+  prefix: nuclear-rerun2
+  reset: False
+
+channel:
+- name: NUCLEAR_RERUN2
+  version: 0
+  access: [ZTF, ZTF_PUB, ZTF_PRIV]
+  policy: []
+
+task:
+- title: t0
+  unit: AlertConsumer
+  config:
+
+    supplier:
+      unit: ZiAlertSupplier
+      config:
+        deserialize: null
+        loader:
+          unit: ZTFArchiveAlertLoader
+          config:
+            archive: https://ampel.zeuthen.desy.de/api/ztf/archive/v3
+            stream:
+              9yL0nUWSkVCh0HQCJeIuj-sJZ0YXsDVDGkxmZapO4s8
+    shaper: ZiDataPointShaper
+    directives:
+
+    - channel: NUCLEAR_RERUN2
+      filter:
+        config:
+        on_stock_match: bypass
+        unit: NuclearFilter
+
+- title: React
+  unit: T3Processor
+  config:
+    raise_exc: true
+    execute:
+      - unit: T3ReviewUnitExecutor
+        config:
+          supply:
+            unit: T3DefaultBufferSupplier
+            config:
+              select:
+                unit: T3StockSelector
+                config:
+                  channel: NUCLEAR_RERUN2
+              load:
+                unit: T3SimpleDataLoader
+                config:
+                  directives:
+                    - STOCK
+                    - T1
+                    - T2DOC
+                  channel: NUCLEAR_RERUN2
+          stage:
+            unit: T3SimpleStager
+            config:
+              execute:
+                - unit: TransientTablePublisher
+                  config:
+                    save_base_info: true
+                    include_stock: true
+                    include_channels: true
+                    fmt: csv
+                    local_path: .
+                    table_schema:
+                      T2DigestRedshifts:
+                        'Ampel z':
+                          - ampel_z
+                        'Ampel distance':
+                          - ampel_dist
+                    transient_table_schema:
+                      T2CatalogMatch:
+                        'SDSS spec z':
+                          - SDSS_spec
+
