@@ -14,7 +14,7 @@ task:
 - title: t0
   unit: AlertConsumer
   config:
-
+    iter_max: 100000000
     supplier:
       unit: ZiAlertSupplier
       config:
