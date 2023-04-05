@@ -4,20 +4,19 @@
 # License           : BSD-3-Clause
 # Author            : sjoertvv <sjoert@astro.umd.edu>
 # Date              : 26.02.2018
-# Last Modified Date: 21.10.2022
+# Last Modified Date: 05.04.2023
 # Last Modified By  : simeon.reusch@desy.de
 
-from typing import Optional, Sequence, Union, Any
+from typing import Any, Optional, Sequence, Union
 
-from ampel.ztf.base.CatalogMatchUnit import CatalogMatchUnit
-import pandas as pd  # type: ignore
 import numpy as np
+import pandas as pd  # type: ignore
 
 from ampel.protocol.AmpelAlertProtocol import AmpelAlertProtocol
+from ampel.ztf.base.CatalogMatchUnit import CatalogMatchUnit
 
 
 class GaiaVetoMixin(CatalogMatchUnit):
-
     maxGaiamatches: int = 30  #: remove source in dens fields (almost certainly star)
     brightObjDist: float = (
         15.0  #: max distance in arcsec for checking nearby bright stars in Gaia or PS1
@@ -71,7 +70,6 @@ class GaiaVetoMixin(CatalogMatchUnit):
             )
 
             if len(magnr_g) and len(magnr_R):
-
                 ztf_g, ztf_r = np.median(magnr_g), np.median(magnr_R)
                 gr = ztf_g - ztf_r
 
@@ -120,10 +118,13 @@ class GaiaVetoMixin(CatalogMatchUnit):
         """
         function to run catsHTM.cone_search and convert to np.array
         """
-        # some files are corrupted, we have to catch the exception
         ra, dec = np.median(alert.get_values("ranr")), np.median(
             alert.get_values("decnr")
         )
+
+        # some alerts contain -999 values, for whatever reason
+        if ra < 0 or dec < -90 or dec > 90:
+            return None
 
         matches = self.cone_search_all(
             ra,
