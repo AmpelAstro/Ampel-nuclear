@@ -97,12 +97,14 @@ class T3PlotNeoWISE(DropboxUnit):
         )
         t0 = 58119
             
-        data_log = {}
+        data_log: dict[str, Any] = {}
 
         transients_total = 0
         transients_in_log = 0
         for transients_total, tran_view in enumerate(gen, 1):
+            assert tran_view.stock
             tran_name = tran_view.stock["name"][0]
+            assert isinstance(tran_name, str)
             tran_year = "20" + tran_name[3:5]
 
             year_path = self.save_location + f"/{tran_year}"
@@ -115,9 +117,10 @@ class T3PlotNeoWISE(DropboxUnit):
             if not data_log:
                 data_log = self.get_data_log()
 
-            ra, dec = tran_view.get_lightcurves()[-1].get_values(
+            assert (lcs := tran_view.get_lightcurves()) is not None
+            ra, dec = lcs[-1].get_values(
                 "ra"
-            ), tran_view.get_lightcurves()[-1].get_values("dec")
+            ), lcs[-1].get_values("dec")
             filebase = self.save_location + f"/{tran_year}/{tran_name}/{tran_name}"
             out_dict: Optional[dict] = {}
 
@@ -142,6 +145,8 @@ class T3PlotNeoWISE(DropboxUnit):
                     )
                     need_data = True
             if need_data:
+                assert ra is not None
+                assert dec is not None
                 obs_str = "{0:0.6f}+{1:+0.6f}".format(np.median(ra), np.median(dec))
 
                 url = url_to_fill.format(obs_str)

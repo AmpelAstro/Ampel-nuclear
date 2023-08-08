@@ -96,7 +96,9 @@ class T3MetricsPlots(DropboxUnit):
         """
 
         for tran_view in gen:
+            assert tran_view.stock is not None
             tran_name = tran_view.stock["name"][0]
+            assert isinstance(tran_name, str)
             tran_year = '20'+tran_name[3:5]
             year_path = self.save_location + f"/{tran_year}"
             # NB: this is cached
@@ -120,7 +122,7 @@ class T3MetricsPlots(DropboxUnit):
                 for dv in tran_view.get_t2_views(unit="T2SimpleMetrics")
             ][0]
 
-            ps1_match_dvs = tran_view.get_t2_views(unit="T2CatalogMatch") or {}
+            ps1_match_dvs = tran_view.get_t2_views(unit="T2CatalogMatch")
             ps1_match = [dv.get_value("PS1", dict) for dv in ps1_match_dvs][0]
 
             if (
@@ -163,7 +165,7 @@ class T3MetricsPlots(DropboxUnit):
                     "empty flex fit for source {}".format(tran_name)
                 )
 
-            if ps1_match and simple:
+            if ps1_match and isinstance(simple, dict):
                 if "metrics" in simple.keys():
                     (
                         dra_ps1,
@@ -185,7 +187,7 @@ class T3MetricsPlots(DropboxUnit):
                         **simple["metrics"],
                     }
 
-            if simple:
+            if isinstance(simple, dict):
                 if "metrics" in simple.keys():
                     self.offset_plots(simple, filepath)
                     if self.verbose:
@@ -214,6 +216,7 @@ class T3MetricsPlots(DropboxUnit):
             
             self.maybe_commit()
         self.commit()
+        return None
 
     def get_ps1(self, simple, ps1_match, filepath):
         metrics, plot_info = simple["metrics"], simple["plot_info"]
