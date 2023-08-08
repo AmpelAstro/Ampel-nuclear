@@ -97,8 +97,11 @@ class T3MetricsPlots(DropboxUnit):
 
         for tran_view in gen:
             tran_name = tran_view.stock["name"][0]
-            year_path = self.save_location + f"/{'20'+tran_name[3:5]}"
+            tran_year = '20'+tran_name[3:5]
+            year_path = self.save_location + f"/{tran_year}"
             # NB: this is cached
+            if tran_year not in self.get_files(self.save_location):
+                self.create_folder(year_path)
             entries_for_year = self.get_files(year_path)
             self.dump_log.append({})
             self.dump_log[-1]["name"] = tran_name

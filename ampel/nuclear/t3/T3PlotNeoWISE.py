@@ -106,6 +106,8 @@ class T3PlotNeoWISE(DropboxUnit):
             tran_year = "20" + tran_name[3:5]
 
             year_path = self.save_location + f"/{tran_year}"
+            if tran_year not in self.get_files(self.save_location):
+                self.create_folder(year_path)
             if tran_name not in self.get_files(year_path):
                 self.create_folder(year_path + f"/{tran_name}")
 
