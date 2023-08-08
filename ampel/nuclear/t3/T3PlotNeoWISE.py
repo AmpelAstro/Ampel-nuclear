@@ -140,12 +140,6 @@ class T3PlotNeoWISE(DropboxUnit):
                     )
                     need_data = True
             if need_data:
-                if tran_name not in entries[tran_year]:
-                    self.create_folder(
-                        self.save_location + f"/{tran_year}/{tran_name}"
-                    )
-                    self.logger.info(f"Creating folder for transient {tran_name}")
-
                 obs_str = "{0:0.6f}+{1:+0.6f}".format(np.median(ra), np.median(dec))
 
                 url = url_to_fill.format(obs_str)
