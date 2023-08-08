@@ -548,7 +548,7 @@ class T3PlotNeoWISE(DropboxUnit):
             buf.seek(0)
             self.put(self.save_location + "/neowise_log.json", buf.read())
 
-            self.commit()
+            self.done()
         return None
 
     def binthem(

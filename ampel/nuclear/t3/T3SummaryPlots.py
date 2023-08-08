@@ -742,7 +742,7 @@ class T3SummaryPlots(DropboxUnit, AbsPhotoT3Unit):
         # for each of the plots (requested by Suvi)
         self.put(plot_dir + "/boxed.txt", bytes(finfo, "utf-8"))
 
-        self.commit()
+        self.done()
 
     def collect_metrics(self, transients):
         """ """

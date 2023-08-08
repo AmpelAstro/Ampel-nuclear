@@ -215,7 +215,7 @@ class T3MetricsPlots(DropboxUnit):
                 )
             
             self.maybe_commit()
-        self.commit()
+        self.done()
         return None
 
     def get_ps1(self, simple, ps1_match, filepath):

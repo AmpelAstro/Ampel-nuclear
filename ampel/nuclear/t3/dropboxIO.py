@@ -118,7 +118,8 @@ class DropboxUnit(AbsPhotoT3Unit):
         return None
 
     def done(self):
-        self.commit()
+        if not self.commit():
+            raise RuntimeError("upload failed")
         self.logger.info(
             f"Wrote {self.stats['bytes']/2**20:.3f} MB in {self.stats['files']} files"
         )
@@ -166,7 +167,8 @@ class DropboxUnit(AbsPhotoT3Unit):
         if sum(size for _, _, size in self._payloads) >= self.buffer_size_mb * (1<<20):
             return self.commit() 
 
-    def commit(self) -> None:
+    @backoff.on_predicate(backoff.expo, factor=10, max_tries=5)
+    def commit(self) -> bool:
 
         # Dropbox cannot handle queues containing more than 1000 files
         payload_subsets = [
@@ -219,13 +221,14 @@ class DropboxUnit(AbsPhotoT3Unit):
                     launch_result.get_async_job_id()
                 )
                 assert status.is_complete()
-                for future, result in zip(
-                    list(futures.keys()), status.get_complete().entries
+                for future, result, item in zip(
+                    list(futures.keys()), status.get_complete().entries, payload_subset
                 ):
-                    if result.is_success():
-                        del futures[future]
-                    else:
-                        raise RuntimeError(str(result.get_failure()))
+                    del futures[future]
+                    if result.is_failure():
+                        self._payloads.append(item)
+                        self.logger.error(f"{result.get_failure()} for {item[1]}")
+        return len(self._payloads) == 0
 
     @lru_cache(maxsize=1024)
     @handle_disconnects
