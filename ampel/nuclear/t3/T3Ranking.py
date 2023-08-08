@@ -9,7 +9,7 @@
 
 import datetime, json, io, time, os
 
-from typing import Any, Optional, Union
+from typing import Any, Iterable, Optional, Union
 from collections.abc import Generator
 
 import matplotlib as mpl  # type: ignore
@@ -135,9 +135,8 @@ class T3Ranking(DropboxUnit):
         self, gen: Generator[TransientView, T3Send, None], t3s: Optional[T3Store] = None
     ) -> Union[UBson, UnitResult]:
         """ """
-        transients = [t for t in gen]
 
-        metrics, metrics_flex = self.collect_metrics(transients)
+        metrics, metrics_flex = self.collect_metrics(gen)
 
         if len(metrics):
             self.metrics = pd.concat([self.metrics, metrics], ignore_index=True)
@@ -160,46 +159,39 @@ class T3Ranking(DropboxUnit):
 
         return None
 
-    def collect_metrics(self, transients):
+    def collect_metrics(self, transients: Iterable[TransientView]):
         """ """
 
-        if transients:
+        simple_res_list = []
+        flexfit_res_list = []
 
-            local_sources = np.array(transients)
-            newdetection_count = len(local_sources)
-            self.logger.info(
-                "Collecting metrics for {} transient(s)".format(newdetection_count)
+        for tran_view in transients:
+
+            # get the classification and some extra info
+            # writing of the classifcation to dropbox is done by T3SummaryPlots
+            classification, extra_info = classifyme.get_class(
+                tran_view, self, self.logger, write=False
             )
 
-            simple_res_list = []
-            flexfit_res_list = []
-
-            for i, tran_view in enumerate(local_sources):
-
-                # get the classification and some extra info
-                # writing of the classifcation to dropbox is done by T3SummaryPlots
-                classification, extra_info = classifyme.get_class(
-                    tran_view, self, self.logger, write=False
-                )
-
-                simple_res = self.get_simple_results(
-                    tran_view, classification, extra_info
-                )
-                flexfit_res = self.get_fit_params(tran_view, classification)
-
-                simple_res_list.append(simple_res)
-                flexfit_res_list.append(flexfit_res)
-
-            metrics = pd.DataFrame.from_records(simple_res_list)
-            metrics_flex = pd.DataFrame.from_records(flexfit_res_list)
-
-            self.logger.info(
-                "successfully collected metrics: "
-                + str(all(metrics_flex["name"] == metrics["name"]))
+            simple_res = self.get_simple_results(
+                tran_view, classification, extra_info
             )
-        else:
+            flexfit_res = self.get_fit_params(tran_view, classification)
+
+            simple_res_list.append(simple_res)
+            flexfit_res_list.append(flexfit_res)
+
+        if not (simple_res_list or flexfit_res_list):
             self.logger.info("no transients to rank!")
             return [], []
+
+        metrics = pd.DataFrame.from_records(simple_res_list)
+        metrics_flex = pd.DataFrame.from_records(flexfit_res_list)
+
+        self.logger.info(
+            "successfully collected metrics: "
+            + str(all(metrics_flex["name"] == metrics["name"]))
+        )
 
         # Cast object columns to float64
         for k in metrics_flex.columns:

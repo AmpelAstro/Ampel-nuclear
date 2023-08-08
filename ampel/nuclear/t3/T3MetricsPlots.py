@@ -95,150 +95,126 @@ class T3MetricsPlots(DropboxUnit):
         Loops through transients and plots results of fit, offset plots, and dumps fit info, simple metrics, and raw lightcurve
         """
 
-        all_transients = [t for t in gen]
+        for tran_view in gen:
+            assert tran_view.stock is not None
+            tran_name = tran_view.stock["name"][0]
+            assert isinstance(tran_name, str)
+            tran_year = '20'+tran_name[3:5]
+            year_path = self.save_location + f"/{tran_year}"
+            # NB: this is cached
+            if tran_year not in self.get_files(self.save_location):
+                self.create_folder(year_path)
+            entries_for_year = self.get_files(year_path)
+            self.dump_log.append({})
+            self.dump_log[-1]["name"] = tran_name
+            
+            filepath = year_path + f"/{tran_name}/{tran_name}"
+            self.dump_log[-1]["dropbox_path"] = filepath
 
-        if all_transients is not None:
-            # select sources with new data
-            good_sources = np.array(all_transients)
-
-            tran_years = np.array(
-                ["20" + tran.stock["name"][0][3:5] for tran in good_sources]
-            )
-            year_folders = self.get_files(
-                self.save_location
-            )  # this should also include neowise log and ps1 log
-            sources_years = (
-                {}
-            )  # dict: {year1: sources first detected in year1, year2:, '' year2, ...}
-            for year in np.unique(tran_years):  # create folders for all relevant years
-                if str(year) not in year_folders:
-                    self.create_folder(self.save_location + f"/{year}")
-                thisyear_trans = good_sources[tran_years == year]
-                self.logger.info(
-                    "Adding to {} sources in year {}".format(
-                        str(len(thisyear_trans)), year
-                    )
-                )
-                sources_years[str(year)] = thisyear_trans
-
-            for (
-                year,
-                sources,
-            ) in sources_years.items():  # loop through and create missing folders
-                year_path = self.save_location + f"/{year}"
-                entries = self.get_files(year_path)
-                for i, tran_view in enumerate(sources):
-                    tran_name = tran_view.stock["name"][0]
-                    self.dump_log.append({})
-                    self.dump_log[-1]["name"] = tran_name
-                    if tran_name not in entries:
-                        self.create_folder(year_path + f"/{tran_name}")
-
-                for i, tran_view in enumerate(sources):
-                    tran_name = tran_view.stock["name"][0]
-                    filepath = year_path + f"/{tran_name}/{tran_name}"
-                    self.dump_log[-1]["dropbox_path"] = filepath
-
-                    flex, compound_id = get_t2_result_with_compound(
+            if tran_name not in entries_for_year:
+                self.create_folder(year_path + f"/{tran_name}")
+            
+            flex, compound_id = get_t2_result_with_compound(
                         view=tran_view, unit_id="T2FlexFit"
                     )
-                    simple = [
-                        dv.get_payload()
-                        for dv in tran_view.get_t2_views(unit="T2SimpleMetrics")
-                    ][0]
+            simple = [
+                dv.get_payload()
+                for dv in tran_view.get_t2_views(unit="T2SimpleMetrics")
+            ][0]
 
-                    ps1_match_dvs = tran_view.get_t2_views(unit="T2CatalogMatch") or {}
-                    ps1_match = [dv.get_value("PS1", dict) for dv in ps1_match_dvs][0]
+            ps1_match_dvs = tran_view.get_t2_views(unit="T2CatalogMatch")
+            ps1_match = [dv.get_value("PS1", dict) for dv in ps1_match_dvs][0]
 
-                    if (
-                        flex is not None
-                        and compound_id is not None
-                        and (lc := get_lightcurve(tran_view, compound_id)) is not None
-                    ):
-                        dict_lc = get_raw_lc(lc)
-                        dump_fname = f"{filepath}_lc.json"
-                        buf = io.BytesIO()
-                        buf.write(
-                            bytes(json.dumps(jsonify(dict_lc), indent=3), "utf-8")
+            if (
+                flex is not None
+                and compound_id is not None
+                and (lc := get_lightcurve(tran_view, compound_id)) is not None
+            ):
+                dict_lc = get_raw_lc(lc)
+                dump_fname = f"{filepath}_lc.json"
+                buf = io.BytesIO()
+                buf.write(
+                    bytes(json.dumps(jsonify(dict_lc), indent=3), "utf-8")
+                )
+                buf.seek(0)
+                self.put(dump_fname, buf.read())
+
+            if flex and "fit_params" in flex.keys():
+                if flex["fit_params"]["photoclass"] != "no fit":
+                    self.fit_plot(flex, filepath)
+                    if self.verbose:
+                        self.logger.info(
+                            "successfully plotted flex fit for source {}".format(
+                                tran_name
+                            )
                         )
-                        buf.seek(0)
-                        self.put(dump_fname, buf.read())
+                    dump_fname = f"{filepath}_flex.json"
+                    buf = io.BytesIO()
+                    buf.write(
+                        bytes(json.dumps(flex["fit_params"], indent=3), "utf-8")
+                    )
+                    buf.seek(0)
+                    self.put(dump_fname, buf.read())
 
-                    if flex and "fit_params" in flex.keys():
-                        if flex["fit_params"]["photoclass"] != "no fit":
-                            self.fit_plot(flex, filepath)
-                            if self.verbose:
-                                self.logger.info(
-                                    "successfully plotted flex fit for source {}".format(
-                                        tran_name
-                                    )
-                                )
-                            dump_fname = f"{filepath}_flex.json"
-                            buf = io.BytesIO()
-                            buf.write(
-                                bytes(json.dumps(flex["fit_params"], indent=3), "utf-8")
+                else:
+                    self.logger.info(
+                        "no flex fit for source {}".format(tran_name)
+                    )
+            else:
+                self.logger.warn(
+                    "empty flex fit for source {}".format(tran_name)
+                )
+
+            if ps1_match and isinstance(simple, dict):
+                if "metrics" in simple.keys():
+                    (
+                        dra_ps1,
+                        ddec_ps1,
+                        offset_med_ps1,
+                        offset_rms_ps1,
+                        offset_sig_ps1,
+                    ) = self.get_ps1(simple, ps1_match, filepath)
+                    simple = dict(simple)
+                    simple["plot_info"] = {
+                        "dra_ps1": dra_ps1,
+                        "ddec_ps1": ddec_ps1,
+                        **simple["plot_info"],
+                    }
+                    simple["metrics"] = {
+                        "offset_med_ps1": offset_med_ps1,
+                        "offset_rms_ps1": offset_rms_ps1,
+                        "offset_sig_ps1": offset_sig_ps1,
+                        **simple["metrics"],
+                    }
+
+            if isinstance(simple, dict):
+                if "metrics" in simple.keys():
+                    self.offset_plots(simple, filepath)
+                    if self.verbose:
+                        self.logger.info(
+                            "successfully plotted offset plots for source {}".format(
+                                tran_name
                             )
-                            buf.seek(0)
-                            self.put(dump_fname, buf.read())
-
-                        else:
-                            self.logger.info(
-                                "no flex fit for source {}".format(tran_name)
-                            )
-                    else:
-                        self.logger.warn(
-                            "empty flex fit for source {}".format(tran_name)
-                        )
-
-                    if ps1_match and simple:
-                        if "metrics" in simple.keys():
-                            (
-                                dra_ps1,
-                                ddec_ps1,
-                                offset_med_ps1,
-                                offset_rms_ps1,
-                                offset_sig_ps1,
-                            ) = self.get_ps1(simple, ps1_match, filepath)
-                            simple = dict(simple)
-                            simple["plot_info"] = {
-                                "dra_ps1": dra_ps1,
-                                "ddec_ps1": ddec_ps1,
-                                **simple["plot_info"],
-                            }
-                            simple["metrics"] = {
-                                "offset_med_ps1": offset_med_ps1,
-                                "offset_rms_ps1": offset_rms_ps1,
-                                "offset_sig_ps1": offset_sig_ps1,
-                                **simple["metrics"],
-                            }
-
-                    if simple:
-                        if "metrics" in simple.keys():
-                            self.offset_plots(simple, filepath)
-                            if self.verbose:
-                                self.logger.info(
-                                    "successfully plotted offset plots for source {}".format(
-                                        tran_name
-                                    )
-                                )
-
-                            dump_fname = f"{filepath}_simple.json"
-                            buf = io.BytesIO()
-                            buf.write(
-                                bytes(json.dumps(simple["metrics"], indent=3), "utf-8")
-                            )
-                            buf.seek(0)
-                            self.put(dump_fname, buf.read())
-
-                        else:
-                            self.logger.info(
-                                "no simple metrics for source {}".format(tran_name)
-                            )
-                    else:
-                        self.logger.warn(
-                            "empty simple metrics for source {}".format(tran_name)
                         )
 
+                    dump_fname = f"{filepath}_simple.json"
+                    buf = io.BytesIO()
+                    buf.write(
+                        bytes(json.dumps(simple["metrics"], indent=3), "utf-8")
+                    )
+                    buf.seek(0)
+                    self.put(dump_fname, buf.read())
+
+                else:
+                    self.logger.info(
+                        "no simple metrics for source {}".format(tran_name)
+                    )
+            else:
+                self.logger.warn(
+                    "empty simple metrics for source {}".format(tran_name)
+                )
+            
+            self.maybe_commit()
         self.commit()
         return None
 

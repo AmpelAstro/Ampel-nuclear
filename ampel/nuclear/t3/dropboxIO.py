@@ -45,6 +45,7 @@ class DropboxUnit(AbsPhotoT3Unit):
     ] = None  # if dryRun is enabled, you must specify a desired temporary directory
     base_location: str = "/mampel"  #:optional diff. directory for testing
     max_connections: int = 20
+    buffer_size_mb: int = 100
     date: Optional[str] = None
 
     def __init__(self, **kwargs):
@@ -161,12 +162,17 @@ class DropboxUnit(AbsPhotoT3Unit):
         self.stats["bytes"] += len(payload)
         self.stats["files"] += 1
 
+    def maybe_commit(self) -> None:
+        if sum(size for _, _, size in self._payloads) >= self.buffer_size_mb * (1<<20):
+            return self.commit() 
+
     def commit(self) -> None:
 
         # Dropbox cannot handle queues containing more than 1000 files
         payload_subsets = [
             self._payloads[i : i + 1000] for i in range(0, len(self._payloads), 1000)
         ]
+        self._payloads.clear()
 
         # Iterate over payload chunks, create a new pool for each
         for payload_subset in payload_subsets:
