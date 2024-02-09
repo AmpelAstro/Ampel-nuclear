@@ -91,8 +91,10 @@ For some time (~ 15 minutes)
 
 ### 5) run with mail output
 ```
-ampel job --schema nuclearfilter.yml  --config ampel_conf.yaml 2>&1 | mail -s "Job finished" "simeon.reusch@desy.de"
+ampel job --schema nuclearfilter.yml  --config ampel_conf.yaml 2>&1 | mail -s "Nuclear filter archival run: Job finished" "simeon.reusch@desy.de"
 ```
+Change the mail address in the command above accordingly.
+
 If you immediately receive a mail, the archive has not yet ramped up. Wait for a bit and try again.
 
 Finally, it will start receiving alerts from the archive. Now there is nothing left to do except to wait until you get an email that your job has finished.
