@@ -1,5 +1,4 @@
 import argparse
-import collections
 import json
 import os
 import pickle
@@ -221,8 +220,8 @@ if __name__ == "__main__":
     initiate = cli_args.initiate
     token_only = cli_args.token
 
-    date_start = "2022-03-01"
-    date_end = "2022-03-31"
+    date_start = "2022-04-01"
+    date_end = "2022-04-30"
 
     resume_token = initiate_token(
         initiate, date_start=date_start, date_end=date_end, token_only=token_only

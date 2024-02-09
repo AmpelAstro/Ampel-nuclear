@@ -1,11 +1,11 @@
-name: nuclear-rerun2
+name: nuclear-rerun3
 
 mongo:
-  prefix: nuclear-rerun2
+  prefix: nuclear-rerun3
   reset: False
 
 channel:
-- name: NUCLEAR_RERUN2
+- name: NUCLEAR_RERUN3
   version: 0
   access: [ZTF, ZTF_PUB, ZTF_PRIV]
   policy: []
@@ -24,11 +24,11 @@ task:
           config:
             archive: https://ampel.zeuthen.desy.de/api/ztf/archive/v3
             stream:
-              9yL0nUWSkVCh0HQCJeIuj-sJZ0YXsDVDGkxmZapO4s8
+              uaALMe6gPiRslUMpR1rNCeYvFYYsYfSv_rN5VnyDE-8
     shaper: ZiDataPointShaper
     directives:
 
-    - channel: NUCLEAR_RERUN2
+    - channel: NUCLEAR_RERUN3
       filter:
         config:
         on_stock_match: bypass
@@ -47,7 +47,7 @@ task:
               select:
                 unit: T3StockSelector
                 config:
-                  channel: NUCLEAR_RERUN2
+                  channel: NUCLEAR_RERUN3
               load:
                 unit: T3SimpleDataLoader
                 config:
@@ -55,7 +55,7 @@ task:
                     - STOCK
                     - T1
                     - T2DOC
-                  channel: NUCLEAR_RERUN2
+                  channel: NUCLEAR_RERUN3
           stage:
             unit: T3SimpleStager
             config:
@@ -65,6 +65,7 @@ task:
                     save_base_info: true
                     include_stock: true
                     include_channels: true
+                    convert_stock_to: ztf
                     fmt: csv
                     local_path: .
                     table_schema:

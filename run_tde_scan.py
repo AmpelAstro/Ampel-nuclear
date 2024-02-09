@@ -3,7 +3,7 @@ import argparse
 import datetime
 import os
 import time
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import matplotlib  # type: ignore
 import requests
@@ -13,9 +13,6 @@ from ampel.log.AmpelLogger import AmpelLogger
 from ampel.nuclear.t0.NuclearFilter import NuclearFilter
 from ampel.secret.AmpelVault import AmpelVault
 from ampel.secret.DictSecretProvider import DictSecretProvider
-from ampel.secret.NamedSecret import NamedSecret
-from ampel.ztf.alert.ZiAlertSupplier import ZiAlertSupplier
-from ampel.ztf.t0.load.ZTFArchiveAlertLoader import ZTFArchiveAlertLoader
 from astropy.time import Time  # type: ignore
 
 matplotlib.use("Agg")

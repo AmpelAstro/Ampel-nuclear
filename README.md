@@ -66,3 +66,40 @@ This will perform a search for the last 4 days and push the results to the dropb
 
 ```
 This will perform a search for October 6, 2022 and save the result in a local directory.
+
+# Archival run
+
+### 1) Screen Session
+Create a long-lived screen or tmux session on the DESY working group server, everything we will do from here will live in that session.
+
+### 2) Configure `nuclearfilter.yml`
+Think of a good channel name, we will use this later to extract statistics and the ZTF-IDs
+
+Change this accordingly in the `nuclearfilter.yml` (`name`, `prefix` in the `mongo` section, and `channel`)
+
+### 3) Initialize stream
+`notebooks/run_nuclearfilter.py` is the script you need.
+
+Enter the desired date range in this script (under `date_start` and `date_end` near the bottom of the script).
+
+Then run `notebooks/run_nuclearfilter.py --initiate` to obtain a new stream token for this date range. This will end in an error (`423 Client Error: Locked for url`) but do not fret. This is expected, the archive needs to ramp up the query. 
+
+We are only interested in the new stream token generated, which can be found in the `resume_token.json`. Copy this token, and enter it in `nuclearfilter.yml` at line 27 (there will be an old token there, change it).
+
+### 4) Wait
+For some time (~ 15 minutes)
+
+### 5) run with mail output
+```
+ampel job --schema nuclearfilter.yml  --config ampel_conf.yaml 2>&1 | mail -s "Job finished" "simeon.reusch@desy.de"
+```
+If you immediately receive a mail, the archive has not yet ramped up. Wait for a bit and try again.
+
+Finally, it will start receiving alerts from the archive. Now there is nothing left to do except to wait until you get an email that your job has finished.
+
+### 6) Output
+The list of all transients that pass the nuclear filter is now stored in `TransientTable.csv`
+
+### 7)  Get statistics
+The log data can be inspected in the MongoDB under `channelname (insert yours here)` - `log`
+The code to evaluate that is located under `ampel-nuclear/get_statistics.py`
