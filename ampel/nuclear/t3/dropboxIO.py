@@ -205,7 +205,7 @@ class DropboxUnit(AbsPhotoT3Unit):
                     )
                 )
             if not entries:
-                return
+                continue
 
             self.logger.info(f"committing {len(entries)} uploads")
             launch_result = handle_disconnects(

@@ -530,7 +530,7 @@ class T3PlotNeoWISE(DropboxUnit):
 
             plot_fname = f"{filebase}-neoWISE.pdf"
             buf = io.BytesIO()
-            ax.figure.savefig(buf, format="pdf")
+            fig.savefig(buf, format="pdf")
             buf.seek(0)
             self.put(plot_fname, buf.read())
             self.logger.debug(f"plotting {tran_name}")
