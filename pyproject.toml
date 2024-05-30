@@ -34,9 +34,9 @@ include = [
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
-ampel-interface = "^0.8.7"
-ampel-ztf = {version = ">=0.8.5,<0.8.6", source = "pypi"}
-ampel-hu-astro = {version = ">=0.8.3a10,<0.8.4", source = "pypi", extras = ["slack", "sncosmo"]}
+ampel-interface = ">=0.8.7,<0.9"
+ampel-ztf = {version = ">=0.8.5,<0.9", source = "pypi"}
+ampel-hu-astro = {version = ">=0.8.3a10,<0.9", source = "pypi", extras = ["slack", "sncosmo"]}
 dropbox = "^11.36.0"
 corner = "^2.2.1"
 
@@ -49,7 +49,7 @@ types-requests = "^2.25.9"
 types-pytz = "^2022.1.2"
 pre-commit = "^3.3.2"
 # duplicate to add a dev extra
-ampel-ztf = {version = ">=0.8.5,<0.8.6", source = "pypi", extras = ["kafka"]}
+ampel-ztf = {version = "*", source = "pypi", extras = ["kafka"]}
 
 [tool.conda-lock]
 channels = ["conda-forge"]
