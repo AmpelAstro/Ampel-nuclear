@@ -165,7 +165,7 @@ class DropboxUnit(AbsPhotoT3Unit):
 
     def maybe_commit(self) -> None:
         if sum(size for _, _, size in self._payloads) >= self.buffer_size_mb * (1<<20):
-            return self.commit() 
+            self.commit() 
 
     @backoff.on_predicate(backoff.expo, factor=10, max_tries=5)
     def commit(self) -> bool:

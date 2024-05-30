@@ -310,13 +310,7 @@ class T3SummaryPlots(DropboxUnit, AbsPhotoT3Unit):
         lw = 0.6
         ms = 2
 
-        # ---
-
-        # ----
-        # color maps obsession
-        # cmap = mpl.cm.get_cmap('magma')
-
-        cmap = mpl.cm.get_cmap("viridis")
+        cmap = mpl.colormaps.get_cmap("viridis")
         manual_colors = [cmap(0.1)] + [
             cmap(0.65),
             cmap(0.65),
