@@ -1904,13 +1904,13 @@ files = [
 
 [[package]]
 name = "pre-commit"
-version = "3.7.1"
+version = "4.0.1"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "pre_commit-3.7.1-py2.py3-none-any.whl", hash = "sha256:fae36fd1d7ad7d6a5a1c0b0d5adb2ed1a3bda5a21bf6c3e5372073d7a11cd4c5"},
-    {file = "pre_commit-3.7.1.tar.gz", hash = "sha256:8ca3ad567bc78a4972a3f1a477e94a79d4597e8140a6e0b651c5e33899c3654a"},
+    {file = "pre_commit-4.0.1-py2.py3-none-any.whl", hash = "sha256:efde913840816312445dc98787724647c65473daefe420785f885e8ed9a06878"},
+    {file = "pre_commit-4.0.1.tar.gz", hash = "sha256:80905ac375958c0444c65e9cebebd948b3cdb518f335a091a670a89d652139d2"},
 ]
 
 [package.dependencies]
@@ -2362,6 +2362,7 @@ optional = false
 python-versions = ">=3.7"
 files = [
     {file = "schedule-1.2.2-py3-none-any.whl", hash = "sha256:5bef4a2a0183abf44046ae0d164cadcac21b1db011bdd8102e4a0c1e91e06a7d"},
+    {file = "schedule-1.2.2.tar.gz", hash = "sha256:15fe9c75fe5fd9b9627f3f19cc0ef1420508f9f9a46f45cd0769ef75ede5f0b7"},
 ]
 
 [package.extras]
@@ -3094,4 +3095,4 @@ tests = ["build", "coverage", "mypy", "ruff", "wheel"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "349d924a2688f669d526b5c455fa37503fb7fb1aaf83c1c52247defea5011869"
+content-hash = "1ddd373306c835c2706fb05dc837dd7b7ee6d7923292a44cdb41b372a4cfe702"
