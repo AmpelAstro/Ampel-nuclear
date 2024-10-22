@@ -33,7 +33,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.12"
+python = ">=3.13,<3.14"
 ampel-interface = ">=0.8.7,<0.9"
 ampel-ztf = {version = ">=0.8.5,<0.9", source = "pypi"}
 ampel-hu-astro = {version = ">=0.8.3a10,<0.9", source = "pypi", extras = ["slack", "sncosmo"]}
@@ -41,13 +41,13 @@ dropbox = "^12.0.0"
 corner = "^2.2.1"
 
 [tool.poetry.dev-dependencies]
-mypy = "^1.3.0"
-pytest = "^8.0.2"
+mypy = "^1.13.0"
+pytest = "^8.3.3"
 pytest-cov = "^5.0.0"
-pytest-mock = "^3.10.0"
+pytest-mock = "^3.14.0"
 types-requests = "^2.25.9"
 types-pytz = "^2022.1.2"
-pre-commit = "^3.3.2"
+pre-commit = "^3.8.0"
 # duplicate to add a dev extra
 ampel-ztf = {version = "*", source = "pypi", extras = ["kafka"]}
 
